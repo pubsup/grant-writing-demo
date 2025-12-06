@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -13,6 +14,7 @@ interface ContextCard {
 }
 
 export default function GrantContextPage() {
+  const router = useRouter();
   const [cards, setCards] = useState<ContextCard[]>([
     {
       id: 1,
@@ -103,7 +105,8 @@ export default function GrantContextPage() {
         fileName: card.file?.name || null,
       }));
       console.log(output);
-      // Success - you can add success feedback here later
+      // Navigate to questions page
+      router.push("/questions");
     }
   };
 
