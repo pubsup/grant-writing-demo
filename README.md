@@ -35,6 +35,32 @@ grant-writing-demo/
 
 ## Getting Started
 
+### Quick Start (Recommended)
+
+Run both frontend and backend with a single command:
+
+**On Linux/macOS:**
+```bash
+./start.sh
+```
+
+**On Windows:**
+```bash
+start.bat
+```
+
+This will:
+- Set up Python virtual environment (if needed)
+- Install all dependencies (if needed)
+- Start both frontend and backend servers
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend API: [http://localhost:8000](http://localhost:8000)
+- API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+Press `Ctrl+C` to stop both services.
+
+### Manual Setup
+
 ### Prerequisites
 - Node.js 18+ and npm
 - Python 3.9+
