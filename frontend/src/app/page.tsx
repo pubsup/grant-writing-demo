@@ -41,7 +41,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-2">
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Next.js 15 App Router</li>
+                <li>Next.js 16 App Router</li>
                 <li>TypeScript</li>
                 <li>Tailwind CSS</li>
                 <li>shadcn/ui Components</li>

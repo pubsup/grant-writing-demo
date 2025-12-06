@@ -5,7 +5,7 @@ A full-stack application boilerplate with Next.js frontend and FastAPI backend.
 ## Tech Stack
 
 ### Frontend
-- **Next.js 15** - React framework with App Router
+- **Next.js 16** - React framework with App Router
 - **TypeScript** - Type-safe JavaScript
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Beautiful and accessible component library
