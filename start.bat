@@ -65,6 +65,9 @@ REM Start backend
 cd backend
 start /b cmd /c "call venv\Scripts\activate.bat && uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
+REM Wait a moment for backend to start and capture its info
+timeout /t 2 /nobreak >nul
+
 REM Start frontend
 cd ..\frontend
 start /b cmd /c "npm run dev"
@@ -73,6 +76,8 @@ echo.
 echo Services started! Press any key to stop...
 pause >nul
 
-REM Cleanup - kill processes on ports 3000 and 8000
-taskkill /F /FI "IMAGENAME eq node.exe" 2>nul
-taskkill /F /FI "IMAGENAME eq python.exe" 2>nul
+REM Cleanup - kill processes on specific ports
+echo Stopping services...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000 ^| findstr LISTENING') do taskkill /F /PID %%a 2>nul
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :3000 ^| findstr LISTENING') do taskkill /F /PID %%a 2>nul
+echo Services stopped.

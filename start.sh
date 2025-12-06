@@ -66,7 +66,7 @@ cd ..
 cleanup() {
     echo ""
     echo "🛑 Stopping services..."
-    kill $(jobs -p) 2>/dev/null || true
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
     exit 0
 }
 
