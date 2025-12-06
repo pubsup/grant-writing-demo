@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -42,7 +42,7 @@ async def get_item(item_id: int):
     for item in items_db:
         if item.id == item_id:
             return item
-    return {"error": "Item not found"}
+    raise HTTPException(status_code=404, detail="Item not found")
 
 @api_router.delete("/items/{item_id}")
 async def delete_item(item_id: int):
