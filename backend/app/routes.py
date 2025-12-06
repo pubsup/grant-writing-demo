@@ -50,3 +50,37 @@ async def delete_item(item_id: int):
     global items_db
     items_db = [item for item in items_db if item.id != item_id]
     return {"message": "Item deleted successfully"}
+
+# Gemini API Integration
+import os
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Configure Gemini API
+GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY")
+if GOOGLE_API_KEY:
+    genai.configure(api_key=GOOGLE_API_KEY)
+
+class GenerateRequest(BaseModel):
+    prompt: str
+
+@api_router.post("/generate")
+async def generate_text(request: GenerateRequest):
+    """
+    Generate text using Gemini API
+    """
+    if not GOOGLE_API_KEY:
+        raise HTTPException(
+            status_code=500, 
+            detail="GEMINI_API_KEY not found in environment variables"
+        )
+        
+    try:
+        model = genai.GenerativeModel('gemini-3-pro-preview')
+        response = model.generate_content(request.prompt)
+        return {"response": response.text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
