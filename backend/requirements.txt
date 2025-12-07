@@ -4,3 +4,4 @@ pydantic==2.10.3
 python-multipart==0.0.20  # Required for file upload support in FastAPI
 google-generativeai
 python-dotenv
+google-genai==1.53.0

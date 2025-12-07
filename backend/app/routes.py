@@ -79,8 +79,95 @@ async def generate_text(request: GenerateRequest):
         )
         
     try:
-        model = genai.GenerativeModel('gemini-3-pro-preview')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         response = model.generate_content(request.prompt)
         return {"response": response.text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# File Upload Integration
+from fastapi import UploadFile, File
+from app.utils import save_upload_metadata, get_upload_path
+import shutil
+import uuid
+import time
+
+@api_router.post("/upload_file")
+async def upload_file(file: UploadFile = File(...)):
+    """
+    Upload a file, save it to disk, and record metadata in index.json
+    """
+    try:
+        # Generate a unique ID for the file
+        file_id = str(uuid.uuid4())
+        # Preserve original extension or assume none/binary
+        original_filename = file.filename if file.filename else "unknown"
+        ext = os.path.splitext(original_filename)[1]
+        stored_filename = f"{file_id}{ext}"
+        
+        # Save file to disk
+        file_path = get_upload_path(stored_filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Create metadata
+        metadata = {
+            "id": file_id,
+            "original_name": original_filename,
+            "stored_name": stored_filename,
+            "content_type": file.content_type,
+            "upload_timestamp": time.time(),
+            "size_bytes": os.path.getsize(file_path)
+        }
+        
+        # Save metadata
+        save_upload_metadata(metadata)
+        
+        return {
+            "message": "File uploaded successfully", 
+            "file_id": file_id,
+            "file_info": metadata
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class TextUploadRequest(BaseModel):
+    text: str
+    filename: Optional[str] = None
+
+@api_router.post("/upload_text")
+async def upload_text(request: TextUploadRequest):
+    """
+    Save raw text content as a file
+    """
+    try:
+        file_id = str(uuid.uuid4())
+        original_filename = request.filename if request.filename else "text_upload.txt"
+        stored_filename = f"{file_id}.txt"
+        
+        file_path = get_upload_path(stored_filename)
+        
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(request.text)
+            
+        metadata = {
+            "id": file_id,
+            "original_name": original_filename,
+            "stored_name": stored_filename,
+            "content_type": "text/plain",
+            "upload_timestamp": time.time(),
+            "size_bytes": os.path.getsize(file_path)
+        }
+        
+        save_upload_metadata(metadata)
+        
+        return {
+            "message": "Text saved successfully",
+            "file_id": file_id,
+            "file_info": metadata
+        }
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
