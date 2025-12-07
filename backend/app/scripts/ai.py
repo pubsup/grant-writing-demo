@@ -6,6 +6,15 @@ from google import genai
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from typing import List
+import sys
+import os
+# Add the parent directory to sys.path for direct execution
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from utils import load_upload_metadata
+from google.genai import types
+import httpx
 
 def get_api_key():
     """Helper to get and validate API key"""
@@ -26,7 +35,7 @@ def get_api_key():
     api_key = os.getenv("GEMINI_API_KEY")
     return api_key
 
-def extract_narrative_questions(text: str) -> List[str]:
+def extract_narrative_questions() -> List[str]:
     """
     Extracts narrative questions from the provided text using Gemini API.
     Returns a list of question strings.
@@ -40,29 +49,44 @@ def extract_narrative_questions(text: str) -> List[str]:
 
     class NarrativeQuestions(BaseModel):
         questions: List[str] = Field(description="List of narrative questions extracted from the text.")
-        
-    prompt = f"""
-    Analyze the following text which represents a grant form or application.
+    
+    # Load metadata and find grant document
+    metadata = load_upload_metadata()
+    grant_doc = next((doc for doc in metadata if doc.get("doc_role") == "grant"), None)
+    if not grant_doc:
+        raise ValueError("No document with doc_role 'grant' found in metadata.")
+    file_name = grant_doc.get("stored_name", "")
+    file_path = pathlib.Path(__file__).parent.parent / "uploads" / file_name
+    
+
+    # Upload the grant document file to Gemini
+    if not file_path.exists():
+        raise ValueError(f"Grant document not found at {file_path}")
+
+    prompt = """
+    Analyze the provided grant form or application document.
     Extract all the "narrative questions" or "essay questions" that an applicant needs to answer.
     Ignore simple fields like name, address, date, etc. Focus on questions requiring multiline text responses.
     
     Return the result strictly as a JSON list of strings. Each string is a question.
     Example format: ["Question 1 text...", "Question 2 text..."]
-    
-    Input Text:
-    {text}
     """
     
     try:
         response = client.models.generate_content(
             model="gemini-2.0-flash",
-            contents=prompt, 
+            contents=[
+                types.Part.from_bytes(
+                    data=file_path.read_bytes(),
+                    mime_type='application/pdf',
+                ),
+                prompt
+            ],
             config={
                 "response_mime_type": "application/json",
                 "response_json_schema": NarrativeQuestions.model_json_schema()
             }
         )
-        print(response.text)
         questions = NarrativeQuestions.model_validate_json(response.text)
         return questions.questions
             
@@ -79,26 +103,15 @@ def test_gemini_setup():
     print(f"✅ Found API Key: {api_key[:5]}...{api_key[-5:]}")
     
     print("\nTesting Question Extraction...")
-    sample_text = """
-    Project Title: My Generic Project
-    
-    1. Executive Summary
-    Please provide a brief summary of your organization and the proposed project. (Max 500 words)
-    
-    2. Needs Statement
-    Describe the specific problem or need that this project addresses. Include data to support your claim.
-    
-    3. Budget
-    Enter the total amount requested: $_____
-    
-    4. Impact
-    How will you measure the success of this project?
-    """
-    
-    questions = extract_narrative_questions(sample_text)
-    print("Extracted Questions:")
-    for i, q in enumerate(questions, 1):
-        print(f"{i}. {q}")
+    try:
+        questions = extract_narrative_questions()
+        print("Extracted Questions:")
+        for i, q in enumerate(questions, 1):
+            print(f"{i}. {q}")
+    except ValueError as e:
+        print(f"❌ Error: {e}")
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
 
 if __name__ == "__main__":
     test_gemini_setup()

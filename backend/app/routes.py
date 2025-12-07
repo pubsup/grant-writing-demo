@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -116,6 +116,7 @@ async def upload_file(file: UploadFile = File(...)):
             "original_name": original_filename,
             "stored_name": stored_filename,
             "content_type": file.content_type,
+            "doc_role": "context",
             "upload_timestamp": time.time(),
             "size_bytes": os.path.getsize(file_path)
         }
@@ -157,6 +158,7 @@ async def upload_text(request: TextUploadRequest):
             "original_name": original_filename,
             "stored_name": stored_filename,
             "content_type": "text/plain",
+            "doc_role": "context",
             "upload_timestamp": time.time(),
             "size_bytes": os.path.getsize(file_path)
         }
@@ -165,6 +167,54 @@ async def upload_text(request: TextUploadRequest):
         
         return {
             "message": "Text saved successfully",
+            "file_id": file_id,
+            "file_info": metadata
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/upload_grant")
+async def upload_grant(
+    file: UploadFile = File(...),
+    department: str = Form(...),
+    county: str = Form(...)
+):
+    """
+    Upload a grant document with department and county information
+    """
+    try:
+        # Generate a unique ID for the file
+        file_id = str(uuid.uuid4())
+        # Preserve original extension or assume none/binary
+        original_filename = file.filename if file.filename else "unknown"
+        ext = os.path.splitext(original_filename)[1]
+        stored_filename = f"{file_id}{ext}"
+        
+        # Save file to disk
+        file_path = get_upload_path(stored_filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Create metadata including department and county
+        metadata = {
+            "id": file_id,
+            "original_name": original_filename,
+            "stored_name": stored_filename,
+            "content_type": file.content_type,
+            "doc_role": "grant",
+            "upload_timestamp": time.time(),
+            "size_bytes": os.path.getsize(file_path),
+            "department": department,
+            "county": county
+        }
+        
+        # Save metadata
+        save_upload_metadata(metadata)
+        
+        return {
+            "message": "Grant document uploaded successfully", 
             "file_id": file_id,
             "file_info": metadata
         }

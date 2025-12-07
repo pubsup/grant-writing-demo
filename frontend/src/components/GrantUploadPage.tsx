@@ -8,20 +8,17 @@ import { Card } from "@/components/ui/card";
 export default function GrantUploadPage() {
   const router = useRouter();
   const [fileName, setFileName] = useState<string>("");
-  const [fullName, setFullName] = useState<string>("");
+  const [department, setDepartment] = useState<string>("");
   const [county, setCounty] = useState<string>("");
-  const [role, setRole] = useState<string>("");
   const [errors, setErrors] = useState<{
     file?: string;
-    fullName?: string;
+    department?: string;
     county?: string;
-    role?: string;
   }>({});
   const [touched, setTouched] = useState<{
     file?: boolean;
-    fullName?: boolean;
+    department?: boolean;
     county?: boolean;
-    role?: boolean;
   }>({});
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,53 +37,73 @@ export default function GrantUploadPage() {
     if (!fileName) {
       newErrors.file = "Please upload a grant document.";
     }
-    if (!fullName.trim()) {
-      newErrors.fullName = "Please enter your name.";
+    if (!department.trim()) {
+      newErrors.department = "Please enter your department name.";
     }
     if (!county.trim()) {
       newErrors.county = "Please enter your county.";
-    }
-    if (!role.trim()) {
-      newErrors.role = "Please enter your role.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Mark all fields as touched
     setTouched({
       file: true,
-      fullName: true,
+      department: true,
       county: true,
-      role: true,
     });
 
     if (validate()) {
-      console.log({
-        fileName,
-        fullName,
-        county,
-        role,
-      });
-      // Navigate to context page
-      router.push("/context");
+      try {
+        const formData = new FormData();
+        const fileInput = document.getElementById(
+          "file-upload"
+        ) as HTMLInputElement;
+        if (fileInput.files?.[0]) {
+          formData.append("file", fileInput.files[0]);
+        }
+        formData.append("department", department);
+        formData.append("county", county);
+
+        const response = await fetch("http://localhost:8000/api/upload_grant", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Upload successful:", result);
+          // Navigate to context page
+          router.push("/context");
+        } else {
+          console.error("Upload failed:", response.statusText);
+          // Handle error - maybe show a message
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        // Handle error
+      }
     }
   };
 
-  const isFormValid = fileName && fullName.trim() && county.trim() && role.trim();
+  const isFormValid = fileName && department.trim() && county.trim();
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-gray-900 mb-3">Pubsup Grant App Demo</h1>
+          <h1 className="text-5xl font-bold text-gray-900 mb-3">
+            Pubsup Grant App Demo
+          </h1>
           <p className="text-xl text-gray-700 font-medium">
-            Upload a grant and we&apos;ll walk your team through the application process.
+            Upload a grant and we&apos;ll walk your team through the application
+            process.
           </p>
         </div>
 
@@ -122,32 +139,38 @@ export default function GrantUploadPage() {
                   </p>
                 )}
                 {touched.file && errors.file && (
-                  <p className="text-sm text-red-700 font-medium">{errors.file}</p>
+                  <p className="text-sm text-red-700 font-medium">
+                    {errors.file}
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* Full Name */}
+            {/* Department Name */}
             <div>
               <label
-                htmlFor="full-name"
+                htmlFor="department"
                 className="block text-base font-semibold text-gray-900 mb-2"
               >
-                Full Name
+                Department Name
               </label>
               <input
-                id="full-name"
+                id="department"
                 type="text"
-                placeholder="Jane Smith"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                onBlur={() => setTouched((prev) => ({ ...prev, fullName: true }))}
+                placeholder="Planning Department"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                onBlur={() =>
+                  setTouched((prev) => ({ ...prev, department: true }))
+                }
                 className="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                   placeholder-gray-400 text-gray-900"
               />
-              {touched.fullName && errors.fullName && (
-                <p className="text-sm text-red-700 font-medium mt-1">{errors.fullName}</p>
+              {touched.department && errors.department && (
+                <p className="text-sm text-red-700 font-medium mt-1">
+                  {errors.department}
+                </p>
               )}
             </div>
 
@@ -171,31 +194,9 @@ export default function GrantUploadPage() {
                   placeholder-gray-400 text-gray-900"
               />
               {touched.county && errors.county && (
-                <p className="text-sm text-red-700 font-medium mt-1">{errors.county}</p>
-              )}
-            </div>
-
-            {/* Role */}
-            <div>
-              <label
-                htmlFor="role"
-                className="block text-base font-semibold text-gray-900 mb-2"
-              >
-                Role
-              </label>
-              <input
-                id="role"
-                type="text"
-                placeholder="Grants Manager"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                onBlur={() => setTouched((prev) => ({ ...prev, role: true }))}
-                className="block w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg
-                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  placeholder-gray-400 text-gray-900"
-              />
-              {touched.role && errors.role && (
-                <p className="text-sm text-red-700 font-medium mt-1">{errors.role}</p>
+                <p className="text-sm text-red-700 font-medium mt-1">
+                  {errors.county}
+                </p>
               )}
             </div>
 

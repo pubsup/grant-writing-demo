@@ -1,1 +1,83 @@
-[]
+[
+  {
+    "id": "cb03799f-de86-416b-a82d-edf916e8614f",
+    "original_name": "Copy of Portal Application to Award - FY25 Criminal Justice Grant Program - Redacted.pdf",
+    "stored_name": "cb03799f-de86-416b-a82d-edf916e8614f.pdf",
+    "content_type": "application/pdf",
+    "upload_timestamp": 1765079523.401236,
+    "size_bytes": 1872645,
+    "department": "test dept",
+    "county": "test county"
+  },
+  {
+    "id": "cb2500cb-ec0b-4542-8d0d-81b4292e593f",
+    "original_name": "Budget.txt",
+    "stored_name": "cb2500cb-ec0b-4542-8d0d-81b4292e593f.txt",
+    "content_type": "text/plain",
+    "upload_timestamp": 1765079537.793355,
+    "size_bytes": 13
+  },
+  {
+    "id": "e30b55db-4921-447e-9359-9a7239f475dd",
+    "original_name": "Plan of Action.txt",
+    "stored_name": "e30b55db-4921-447e-9359-9a7239f475dd.txt",
+    "content_type": "text/plain",
+    "upload_timestamp": 1765079537.795397,
+    "size_bytes": 21
+  },
+  {
+    "id": "a28f51ec-150d-44cc-863d-5e38ce3c6e12",
+    "original_name": "Grant Management Policy 2024-06-03.pdf",
+    "stored_name": "a28f51ec-150d-44cc-863d-5e38ce3c6e12.pdf",
+    "content_type": "application/pdf",
+    "upload_timestamp": 1765079537.8043609,
+    "size_bytes": 3401136
+  },
+  {
+    "id": "fc613643-af97-4445-8e92-8a2fd8016e84",
+    "original_name": "Copy of Portal Application to Award - FY25 Criminal Justice Grant Program - Redacted.pdf",
+    "stored_name": "fc613643-af97-4445-8e92-8a2fd8016e84.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765079611.3916569,
+    "size_bytes": 1872645,
+    "department": "test",
+    "county": "test"
+  },
+  {
+    "id": "dee37cd7-1c7b-4f5e-a214-178245a245ea",
+    "original_name": "Budget.txt",
+    "stored_name": "dee37cd7-1c7b-4f5e-a214-178245a245ea.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.845008,
+    "size_bytes": 11
+  },
+  {
+    "id": "d6ab5d25-9470-4350-8daa-13bb945998e4",
+    "original_name": "Plan of Action.txt",
+    "stored_name": "d6ab5d25-9470-4350-8daa-13bb945998e4.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.846879,
+    "size_bytes": 5
+  },
+  {
+    "id": "196b6850-c4b2-44d9-a1a3-76b67e527ac9",
+    "original_name": "Additional Research.txt",
+    "stored_name": "196b6850-c4b2-44d9-a1a3-76b67e527ac9.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.849171,
+    "size_bytes": 8
+  },
+  {
+    "id": "1b702578-c456-454b-a02d-bc60e5327478",
+    "original_name": "Grant Management Policy 2024-06-03.pdf",
+    "stored_name": "1b702578-c456-454b-a02d-bc60e5327478.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.8571038,
+    "size_bytes": 3401136
+  }
+]
