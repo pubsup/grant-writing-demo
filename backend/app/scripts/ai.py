@@ -94,6 +94,67 @@ def extract_narrative_questions() -> List[str]:
         print(f"Error extracting questions: {e}")
         return []
 
+
+def generate_response(question: str, outline: dict) -> str:
+    """
+    Generate a response to a question using uploaded context and an answer outline.
+    
+    Args:
+        question: The question to answer
+        outline: Dict containing sections with 'name' and 'description' keys
+        
+    Returns:
+        The generated response string
+    """
+    api_key = get_api_key()
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY not found.")
+    
+    client = genai.Client()
+    
+    # Load all uploaded files
+    metadata = load_upload_metadata()
+    total_prompt_in = []
+    
+    for item in metadata:
+        file_path = pathlib.Path(__file__).parent.parent / "uploads" / item["stored_name"]
+        if file_path.exists():
+            total_prompt_in.append(types.Part.from_bytes(
+                data=file_path.read_bytes(),
+                mime_type=item["content_type"],
+            ))
+        else:
+            print(f"Warning: Uploaded file {file_path} not found.")
+    
+    # Format the outline
+    outline_text = "Answer Outline:\n"
+    if "sections" in outline:
+        for i, section in enumerate(outline["sections"], 1):
+            outline_text += f"{i}. {section['name']}: {section['description']}\n"
+    
+    prompt = f"""
+You are helping with grant writing. Answer the following question using the provided context and outline.
+
+QUESTION: {question}
+
+{outline_text}
+
+Please provide a comprehensive answer that draws from the uploaded documents and follows the structure outlined above. Be specific and reference relevant details from the context where appropriate.
+"""
+    
+    total_prompt_in.append(prompt)
+    
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=total_prompt_in,
+        )
+        return response.text
+    except Exception as e:
+        print(f"Error generating response: {e}")
+        return f"Error generating response: {e}"
+
+
 def test_gemini_setup():
     api_key = get_api_key()
     if not api_key:
@@ -101,13 +162,17 @@ def test_gemini_setup():
         return
 
     print(f"✅ Found API Key: {api_key[:5]}...{api_key[-5:]}")
-    
-    print("\nTesting Question Extraction...")
+
     try:
-        questions = extract_narrative_questions()
-        print("Extracted Questions:")
-        for i, q in enumerate(questions, 1):
-            print(f"{i}. {q}")
+        print("\nTesting Response Generation...")
+        test_outline = {
+            "sections": [
+                {"name": "Background", "description": "Provide organizational background"},
+                {"name": "Impact", "description": "Describe expected impact"}
+            ]
+        }
+        response = generate_response("write a narrative about your project", test_outline)
+        print(f"Generated Response:\n{response}")
     except ValueError as e:
         print(f"❌ Error: {e}")
     except Exception as e:
