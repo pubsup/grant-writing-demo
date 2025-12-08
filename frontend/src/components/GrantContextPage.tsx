@@ -71,7 +71,10 @@ export default function GrantContextPage() {
     setNextId((prev) => prev + 1);
   };
 
-  const handleFileChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    id: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0] || null;
     updateCard(id, { file });
   };
@@ -86,7 +89,9 @@ export default function GrantContextPage() {
 
   const allCardsValid = cards.every(isCardValid);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Mark all cards as touched
@@ -97,16 +102,58 @@ export default function GrantContextPage() {
     setTouched(newTouched);
 
     if (allCardsValid) {
-      const output = cards.map((card) => ({
-        id: card.id,
-        title: card.title,
-        mode: card.mode,
-        textValue: card.textValue,
-        fileName: card.file?.name || null,
-      }));
-      console.log(output);
-      // Navigate to questions page
-      router.push("/questions");
+      setIsSubmitting(true);
+      try {
+        // Upload each card's content
+        const uploadPromises = cards.map(async (card) => {
+          if (card.mode === "text") {
+            // Upload text
+            const response = await fetch(
+              "http://localhost:8000/api/upload_text",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  text: card.textValue,
+                  filename: `${card.title}.txt`,
+                }),
+              }
+            );
+            if (!response.ok) {
+              throw new Error(`Failed to upload text for ${card.title}`);
+            }
+            return response.json();
+          } else if (card.file) {
+            // Upload file
+            const formData = new FormData();
+            formData.append("file", card.file);
+            const response = await fetch(
+              "http://localhost:8000/api/upload_file",
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+            if (!response.ok) {
+              throw new Error(`Failed to upload file for ${card.title}`);
+            }
+            return response.json();
+          }
+        });
+
+        await Promise.all(uploadPromises);
+
+        // Navigate to questions page
+        router.push("/questions");
+      } catch (error) {
+        console.error("Upload error:", error);
+        // TODO: Show error message to user
+        alert("Failed to upload context. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -127,9 +174,12 @@ export default function GrantContextPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Grant Context</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            Grant Context
+          </h1>
           <p className="text-lg text-gray-700">
-            Add key documents and narrative context so we can help structure your application.
+            Add key documents and narrative context so we can help structure
+            your application.
           </p>
         </div>
 
@@ -139,14 +189,19 @@ export default function GrantContextPage() {
             {cards.map((card) => {
               const error = getCardError(card);
               return (
-                <Card key={card.id} className="p-6 bg-white shadow-md border border-gray-200">
+                <Card
+                  key={card.id}
+                  className="p-6 bg-white shadow-md border border-gray-200"
+                >
                   {/* Card Header */}
                   <div className="flex items-center gap-3 mb-4 flex-wrap">
                     {/* Editable Title */}
                     <input
                       type="text"
                       value={card.title}
-                      onChange={(e) => updateCard(card.id, { title: e.target.value })}
+                      onChange={(e) =>
+                        updateCard(card.id, { title: e.target.value })
+                      }
                       className="flex-1 min-w-[150px] px-3 py-2 text-base font-semibold text-gray-900 
                         border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 
                         focus:border-blue-500"
@@ -196,8 +251,12 @@ export default function GrantContextPage() {
                     {card.mode === "text" ? (
                       <textarea
                         value={card.textValue}
-                        onChange={(e) => updateCard(card.id, { textValue: e.target.value })}
-                        onBlur={() => setTouched((prev) => ({ ...prev, [card.id]: true }))}
+                        onChange={(e) =>
+                          updateCard(card.id, { textValue: e.target.value })
+                        }
+                        onBlur={() =>
+                          setTouched((prev) => ({ ...prev, [card.id]: true }))
+                        }
                         placeholder="Type details here..."
                         rows={6}
                         className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg 
@@ -210,7 +269,9 @@ export default function GrantContextPage() {
                           type="file"
                           accept=".pdf,.doc,.docx,.txt,.xlsx,.xls"
                           onChange={(e) => handleFileChange(card.id, e)}
-                          onBlur={() => setTouched((prev) => ({ ...prev, [card.id]: true }))}
+                          onBlur={() =>
+                            setTouched((prev) => ({ ...prev, [card.id]: true }))
+                          }
                           className="block w-full text-sm text-gray-700
                             file:mr-4 file:py-3 file:px-6
                             file:rounded-lg file:border file:border-gray-300
@@ -227,7 +288,9 @@ export default function GrantContextPage() {
                       </div>
                     )}
                     {error && (
-                      <p className="text-sm text-red-700 font-medium">{error}</p>
+                      <p className="text-sm text-red-700 font-medium">
+                        {error}
+                      </p>
                     )}
                   </div>
                 </Card>
@@ -252,13 +315,13 @@ export default function GrantContextPage() {
           <div className="flex justify-center pt-6">
             <Button
               type="submit"
-              disabled={!allCardsValid}
+              disabled={!allCardsValid || isSubmitting}
               className="w-full sm:w-auto sm:min-w-[280px] bg-blue-600 hover:bg-blue-700
                 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300
                 text-white font-bold text-lg py-3 px-8 rounded-lg
                 transition-colors duration-200 shadow-md hover:shadow-lg"
             >
-              Save Context &amp; Continue
+              {isSubmitting ? "Uploading..." : "Save Context & Continue"}
             </Button>
           </div>
         </form>

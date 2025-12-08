@@ -1,0 +1,241 @@
+[
+  {
+    "id": "cb03799f-de86-416b-a82d-edf916e8614f",
+    "original_name": "Copy of Portal Application to Award - FY25 Criminal Justice Grant Program - Redacted.pdf",
+    "stored_name": "cb03799f-de86-416b-a82d-edf916e8614f.pdf",
+    "content_type": "application/pdf",
+    "upload_timestamp": 1765079523.401236,
+    "size_bytes": 1872645,
+    "department": "test dept",
+    "county": "test county"
+  },
+  {
+    "id": "cb2500cb-ec0b-4542-8d0d-81b4292e593f",
+    "original_name": "Budget.txt",
+    "stored_name": "cb2500cb-ec0b-4542-8d0d-81b4292e593f.txt",
+    "content_type": "text/plain",
+    "upload_timestamp": 1765079537.793355,
+    "size_bytes": 13
+  },
+  {
+    "id": "e30b55db-4921-447e-9359-9a7239f475dd",
+    "original_name": "Plan of Action.txt",
+    "stored_name": "e30b55db-4921-447e-9359-9a7239f475dd.txt",
+    "content_type": "text/plain",
+    "upload_timestamp": 1765079537.795397,
+    "size_bytes": 21
+  },
+  {
+    "id": "a28f51ec-150d-44cc-863d-5e38ce3c6e12",
+    "original_name": "Grant Management Policy 2024-06-03.pdf",
+    "stored_name": "a28f51ec-150d-44cc-863d-5e38ce3c6e12.pdf",
+    "content_type": "application/pdf",
+    "upload_timestamp": 1765079537.8043609,
+    "size_bytes": 3401136
+  },
+  {
+    "id": "fc613643-af97-4445-8e92-8a2fd8016e84",
+    "original_name": "Copy of Portal Application to Award - FY25 Criminal Justice Grant Program - Redacted.pdf",
+    "stored_name": "fc613643-af97-4445-8e92-8a2fd8016e84.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765079611.3916569,
+    "size_bytes": 1872645,
+    "department": "test",
+    "county": "test"
+  },
+  {
+    "id": "dee37cd7-1c7b-4f5e-a214-178245a245ea",
+    "original_name": "Budget.txt",
+    "stored_name": "dee37cd7-1c7b-4f5e-a214-178245a245ea.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.845008,
+    "size_bytes": 11
+  },
+  {
+    "id": "d6ab5d25-9470-4350-8daa-13bb945998e4",
+    "original_name": "Plan of Action.txt",
+    "stored_name": "d6ab5d25-9470-4350-8daa-13bb945998e4.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.846879,
+    "size_bytes": 5
+  },
+  {
+    "id": "196b6850-c4b2-44d9-a1a3-76b67e527ac9",
+    "original_name": "Additional Research.txt",
+    "stored_name": "196b6850-c4b2-44d9-a1a3-76b67e527ac9.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.849171,
+    "size_bytes": 8
+  },
+  {
+    "id": "1b702578-c456-454b-a02d-bc60e5327478",
+    "original_name": "Grant Management Policy 2024-06-03.pdf",
+    "stored_name": "1b702578-c456-454b-a02d-bc60e5327478.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "context",
+    "upload_timestamp": 1765079631.8571038,
+    "size_bytes": 3401136
+  },
+  {
+    "id": "f39aed7c-f148-4dbe-a6f3-410e68ac944b",
+    "original_name": "gova-implementation-grant-application.pdf",
+    "stored_name": "f39aed7c-f148-4dbe-a6f3-410e68ac944b.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765214622.94865,
+    "size_bytes": 266697,
+    "department": "Department of Tranportation",
+    "county": "Fairfax County, VA"
+  },
+  {
+    "id": "f286c1a0-1588-4311-912f-3920324f11f1",
+    "original_name": "gova-implementation-grant-application.pdf",
+    "stored_name": "f286c1a0-1588-4311-912f-3920324f11f1.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765214764.936457,
+    "size_bytes": 266697,
+    "department": "Economic Development",
+    "county": "Fairfax County, VA"
+  },
+  {
+    "id": "d9f37559-4f13-4905-b80d-bbf26322d4b9",
+    "original_name": "Budget.txt",
+    "stored_name": "d9f37559-4f13-4905-b80d-bbf26322d4b9.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765214898.837628,
+    "size_bytes": 1192
+  },
+  {
+    "id": "0807bf7c-0d3b-4617-8ed3-a02443def46d",
+    "original_name": "Plan of Action.txt",
+    "stored_name": "0807bf7c-0d3b-4617-8ed3-a02443def46d.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765214898.840478,
+    "size_bytes": 1797
+  },
+  {
+    "id": "27aebeff-5327-4617-8b97-503ee5bf48d2",
+    "original_name": "Project description.txt",
+    "stored_name": "27aebeff-5327-4617-8b97-503ee5bf48d2.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765214898.841106,
+    "size_bytes": 612
+  },
+  {
+    "id": "eac40ab9-a9ad-47e7-804e-2e96e6ef2fc0",
+    "original_name": "gova-implementation-grant-application.pdf",
+    "stored_name": "eac40ab9-a9ad-47e7-804e-2e96e6ef2fc0.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765218814.634629,
+    "size_bytes": 266697,
+    "department": "Economic Development",
+    "county": "Fairfax County, VA"
+  },
+  {
+    "id": "f0c79dee-2290-46eb-895f-45c378cf03eb",
+    "original_name": "gova-implementation-grant-application.pdf",
+    "stored_name": "f0c79dee-2290-46eb-895f-45c378cf03eb.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765218814.63742,
+    "size_bytes": 266697,
+    "department": "Economic Development",
+    "county": "Fairfax County, VA"
+  },
+  {
+    "id": "c6b1e9fe-87f2-44d2-b481-3a3abf32d2ca",
+    "original_name": "gova-implementation-grant-application.pdf",
+    "stored_name": "c6b1e9fe-87f2-44d2-b481-3a3abf32d2ca.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765218814.770881,
+    "size_bytes": 266697,
+    "department": "Economic Development",
+    "county": "Fairfax County, VA"
+  },
+  {
+    "id": "d0cd0218-de7d-442a-841d-f8d46ed8caae",
+    "original_name": "gova-implementation-grant-application.pdf",
+    "stored_name": "d0cd0218-de7d-442a-841d-f8d46ed8caae.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765218835.070967,
+    "size_bytes": 266697,
+    "department": "Economic Development",
+    "county": "Fairfax County, VA"
+  },
+  {
+    "id": "b74f116e-f092-4d8f-8e69-11e6a0f6e7ec",
+    "original_name": "Budget.txt",
+    "stored_name": "b74f116e-f092-4d8f-8e69-11e6a0f6e7ec.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765218865.369163,
+    "size_bytes": 1192
+  },
+  {
+    "id": "74882ddf-8962-4eca-b88e-8ec7a4601756",
+    "original_name": "Plan of Action.txt",
+    "stored_name": "74882ddf-8962-4eca-b88e-8ec7a4601756.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765218865.3724911,
+    "size_bytes": 1797
+  },
+  {
+    "id": "221f7248-6a4c-4fe8-ad4a-2f536ae707c1",
+    "original_name": "Project Description.txt",
+    "stored_name": "221f7248-6a4c-4fe8-ad4a-2f536ae707c1.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765218865.373065,
+    "size_bytes": 612
+  },
+  {
+    "id": "62b6f19e-0734-449a-b127-278652854ffe",
+    "original_name": "gova-implementation-grant-application.pdf",
+    "stored_name": "62b6f19e-0734-449a-b127-278652854ffe.pdf",
+    "content_type": "application/pdf",
+    "doc_role": "grant",
+    "upload_timestamp": 1765219434.811272,
+    "size_bytes": 266697,
+    "department": "Economic Development",
+    "county": "Fairfax County, VA"
+  },
+  {
+    "id": "53a3e292-9216-4fb0-aea7-42707066cc0c",
+    "original_name": "Budget.txt",
+    "stored_name": "53a3e292-9216-4fb0-aea7-42707066cc0c.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765219462.262453,
+    "size_bytes": 1191
+  },
+  {
+    "id": "3297bda7-a053-462c-bbe4-6b7b8a7fb08c",
+    "original_name": "Plan of Action.txt",
+    "stored_name": "3297bda7-a053-462c-bbe4-6b7b8a7fb08c.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765219462.265538,
+    "size_bytes": 1797
+  },
+  {
+    "id": "6c9c1d1e-77c3-4840-a95c-b81c2b96e790",
+    "original_name": "Project Description.txt",
+    "stored_name": "6c9c1d1e-77c3-4840-a95c-b81c2b96e790.txt",
+    "content_type": "text/plain",
+    "doc_role": "context",
+    "upload_timestamp": 1765219462.266443,
+    "size_bytes": 612
+  }
+]
