@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Form
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
+from app.scripts import ai
 
 api_router = APIRouter()
 
@@ -219,5 +220,49 @@ async def upload_grant(
             "file_info": metadata
         }
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# AI Workflow Endpoints
+
+@api_router.post("/extract_questions")
+async def extract_questions():
+    """
+    Extract narrative questions from the uploaded grant document.
+    """
+    try:
+        questions = ai.extract_narrative_questions()
+        return {"questions": questions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class QuestionBreakdownRequest(BaseModel):
+    question: str
+
+@api_router.post("/break_down_question")
+async def break_down_question(request: QuestionBreakdownRequest):
+    """
+    Break down a complex question into sub-questions.
+    """
+    try:
+        sub_questions = ai.break_down_question(request.question)
+        return {"sub_questions": sub_questions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class GenerateResponseRequest(BaseModel):
+    question: str
+    outline: Dict  # expects a dict with "sections": [{"name": "...", "description": "..."}]
+
+@api_router.post("/generate_response")
+async def generate_response(request: GenerateResponseRequest):
+    """
+    Generate a draft response for a question.
+    """
+    try:
+        response_text = ai.generate_response(request.question, request.outline)
+        return {"response": response_text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

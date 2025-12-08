@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -20,39 +20,31 @@ export default function GrantSummaryPage() {
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
 
+  const [questionSummaries, setQuestionSummaries] = useState<QuestionSummary[]>([]);
+
+  useEffect(() => {
+    const savedQuestions = localStorage.getItem("grantQuestions");
+    if (savedQuestions) {
+      try {
+        const questions = JSON.parse(savedQuestions);
+        const summaries = questions.map((q: any) => ({
+          id: q.id,
+          title: q.title,
+          answer: q.draftAnswerParagraphs.join("\n\n") || "No answer draft generated."
+        }));
+        setQuestionSummaries(summaries);
+      } catch (e) {
+        console.error("Failed to parse saved questions", e);
+      }
+    }
+  }, []);
+
   // Placeholder data - can be replaced with props or context later
   const applicant: ApplicantInfo = {
     fullName: "Jane Smith",
     county: "Frederick County, MD",
     role: "Grants Manager",
   };
-
-  const questionSummaries: QuestionSummary[] = [
-    {
-      id: "q1",
-      title: "Executive Summary",
-      answer:
-        "This project will modernize our emergency response capabilities across the county, integrating advanced communication systems and real-time data sharing platforms that will significantly reduce response times and improve coordination between agencies.\n\nIt addresses critical infrastructure gaps identified over the past five years through comprehensive community assessments and stakeholder consultations. The proposed solution leverages proven technologies while remaining adaptable to future innovations and changing community needs.",
-    },
-    {
-      id: "q2",
-      title: "Stakeholders",
-      answer:
-        "Primary stakeholders include the Department of Emergency Services, local fire districts, and regional hospital partners who will directly benefit from enhanced communication capabilities. Secondary stakeholders encompass county residents who will experience improved emergency response times and outcomes.\n\nOur project team has secured written commitments from all key partners, demonstrating strong community support and ensuring sustainable long-term collaboration beyond the grant period.",
-    },
-    {
-      id: "q3",
-      title: "Project Plan & Timeline",
-      answer:
-        "Phase I will focus on procurement and system configuration over the first six months, working closely with our technology vendor to customize the platform for our specific county needs and integrate with existing infrastructure.\n\nPhase II will roll out training and deployment across all districts over months 7-12, with comprehensive training programs for first responders and ongoing technical support to ensure smooth adoption.\n\nPhase III establishes evaluation protocols and continuous improvement processes to measure success metrics and make data-driven adjustments throughout the implementation period.",
-    },
-    {
-      id: "q4",
-      title: "Evaluation & Metrics",
-      answer:
-        "Success will be measured through quantitative metrics including average emergency response times, call processing efficiency, and inter-agency communication frequency. We will establish baseline measurements in month one and track improvements quarterly.\n\nQualitative assessments will capture stakeholder satisfaction through surveys and focus groups with first responders, healthcare partners, and community members. An independent evaluator will conduct annual assessments to ensure objectivity and comprehensive analysis of project outcomes.",
-    },
-  ];
 
   const buildSummaryText = (): string => {
     let text = "";

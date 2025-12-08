@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,56 +18,79 @@ type Question = {
   draftAnswerParagraphs: string[];
 };
 
-const INITIAL_QUESTIONS: Question[] = [
-  {
-    id: "exec-summary",
-    title: "Executive Summary",
-    subQuestions: [
-      { id: "es-1", label: "What is the historical context?", notes: "" },
-      { id: "es-2", label: "What problem are you addressing?", notes: "" },
-      { id: "es-3", label: "Why do you need the grant now?", notes: "" },
-    ],
-    draftAnswerParagraphs: [],
-  },
-  {
-    id: "stakeholders",
-    title: "Stakeholders",
-    subQuestions: [
-      { id: "sh-1", label: "Who are the primary beneficiaries?", notes: "" },
-      { id: "sh-2", label: "Which departments or partners are involved?", notes: "" },
-      { id: "sh-3", label: "What is the community impact?", notes: "" },
-    ],
-    draftAnswerParagraphs: [],
-  },
-  {
-    id: "project-plan",
-    title: "Project Plan & Timeline",
-    subQuestions: [
-      { id: "pp-1", label: "What are the key milestones?", notes: "" },
-      { id: "pp-2", label: "What is the implementation timeline?", notes: "" },
-      { id: "pp-3", label: "What resources are required?", notes: "" },
-      { id: "pp-4", label: "What are the deliverables?", notes: "" },
-    ],
-    draftAnswerParagraphs: [],
-  },
-  {
-    id: "evaluation",
-    title: "Evaluation & Metrics",
-    subQuestions: [
-      { id: "ev-1", label: "What are your success metrics?", notes: "" },
-      { id: "ev-2", label: "How will you measure outcomes?", notes: "" },
-      { id: "ev-3", label: "What is your evaluation timeline?", notes: "" },
-    ],
-    draftAnswerParagraphs: [],
-  },
-];
-
 export default function GrantQuestionNavigator() {
   const router = useRouter();
-  const [questions, setQuestions] = useState<Question[]>(INITIAL_QUESTIONS);
-  const [currentQuestionId, setCurrentQuestionId] = useState<string>(INITIAL_QUESTIONS[0].id);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionId, setCurrentQuestionId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [processingStatus, setProcessingStatus] = useState("Initializing...");
+  const [generatingDraft, setGeneratingDraft] = useState(false);
 
-  const currentQuestion = questions.find((q) => q.id === currentQuestionId)!;
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setProcessingStatus("Extracting narrative questions from document...");
+        const extractRes = await fetch("http://localhost:8000/api/extract_questions", {
+          method: "POST",
+        });
+        if (!extractRes.ok) throw new Error("Failed to extract questions");
+        
+        const { questions: rawQuestions } = await extractRes.json();
+        const processedQuestions: Question[] = [];
+
+        for (let i = 0; i < rawQuestions.length; i++) {
+          const qText = rawQuestions[i];
+          setProcessingStatus(`Breaking down question ${i + 1} of ${rawQuestions.length}...`);
+          
+          const breakdownRes = await fetch("http://localhost:8000/api/break_down_question", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question: qText }),
+          });
+          
+          let subQuestionsList: string[] = [];
+          if (breakdownRes.ok) {
+            const data = await breakdownRes.json();
+            subQuestionsList = data.sub_questions;
+          } else {
+            subQuestionsList = ["Analyze this aspect."]; // Fallback
+          }
+
+          processedQuestions.push({
+            id: `q-${i}`,
+            title: qText.length > 50 ? qText.substring(0, 50) + "..." : qText, // Long title truncated
+            subQuestions: subQuestionsList.map((sq, idx) => ({
+              id: `sq-${i}-${idx}`,
+              label: sq,
+              notes: ""
+            })),
+            draftAnswerParagraphs: []
+          });
+        }
+
+        setQuestions(processedQuestions);
+        if (processedQuestions.length > 0) {
+          setCurrentQuestionId(processedQuestions[0].id);
+        }
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+        // Fallback to empty or show error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, []);
+
+  // Persist to localStorage whenever questions change
+  useEffect(() => {
+    if (questions.length > 0) {
+      localStorage.setItem("grantQuestions", JSON.stringify(questions));
+    }
+  }, [questions]);
+
+  const currentQuestion = questions.find((q) => q.id === currentQuestionId);
 
   const getQuestionStatus = (question: Question): "Not started" | "In progress" | "Complete" => {
     if (question.draftAnswerParagraphs.length > 0) {
@@ -126,36 +149,70 @@ export default function GrantQuestionNavigator() {
     );
   };
 
-  const generateDraftAnswer = (questionId: string) => {
+  const generateDraftAnswer = async (questionId: string) => {
     const question = questions.find((q) => q.id === questionId);
     if (!question) return;
 
-    const paragraphs = question.subQuestions.map((sq) => {
-      if (sq.notes.trim()) {
-        return `${sq.label}: ${sq.notes.trim()}`;
+    setGeneratingDraft(true);
+    try {
+      // Build the outline from sub-questions and notes
+      const outline = {
+        sections: question.subQuestions.map(sq => ({
+          name: sq.label,
+          description: sq.notes || "Include relevant details based on the context."
+        }))
+      };
+
+      // Call Backend
+      const response = await fetch("http://localhost:8000/api/generate_response", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: question.title, // Pass the full title/question
+          outline: outline
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const paragraphs = data.response.split("\n\n").filter((p: string) => p.trim());
+        
+        setQuestions((prev) =>
+          prev.map((q) =>
+            q.id === questionId
+              ? {
+                  ...q,
+                  draftAnswerParagraphs: paragraphs,
+                }
+              : q
+          )
+        );
       } else {
-        return `${sq.label}: This section addresses the key aspects of ${sq.label.toLowerCase()}. Further details and research will be incorporated to provide a comprehensive response that meets the grant requirements.`;
+        console.error("Failed to generate response");
       }
-    });
-
-    setQuestions((prev) =>
-      prev.map((q) =>
-        q.id === questionId
-          ? {
-              ...q,
-              draftAnswerParagraphs: paragraphs,
-            }
-          : q
-      )
-    );
-
-    console.log({
-      questionId,
-      title: question.title,
-      subQuestions: question.subQuestions,
-      draftAnswerParagraphs: paragraphs,
-    });
+    } catch (e) {
+      console.error("Error generating draft:", e);
+    } finally {
+      setGeneratingDraft(false);
+    }
   };
+
+  if (loading) {
+     return (
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Analyzing Grant Document</h2>
+            <p className="text-gray-600">{processingStatus}</p>
+        </div>
+     );
+  }
+
+  if (!currentQuestion) {
+      return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+              <p>No questions found or extracted.</p>
+          </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -197,7 +254,7 @@ export default function GrantQuestionNavigator() {
                           : "bg-white border-2 border-gray-200 hover:bg-gray-50"
                       }`}
                     >
-                      <div className="text-sm font-medium text-gray-900 mb-1">
+                      <div className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
                         {question.title}
                       </div>
                       <div className="flex items-center gap-2">
@@ -301,10 +358,12 @@ export default function GrantQuestionNavigator() {
               <div className="mb-8">
                 <Button
                   onClick={() => generateDraftAnswer(currentQuestion.id)}
+                  disabled={generatingDraft}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-base 
-                    py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
+                    py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg
+                    disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  Generate Draft Answer
+                  {generatingDraft ? "Generating..." : "Generate Draft Answer"}
                 </Button>
               </div>
 

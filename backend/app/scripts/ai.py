@@ -12,7 +12,7 @@ import os
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from utils import load_upload_metadata
+from app.utils import load_upload_metadata
 from google.genai import types
 import httpx
 
@@ -34,6 +34,56 @@ def get_api_key():
 
     api_key = os.getenv("GEMINI_API_KEY")
     return api_key
+
+class SubQuestions(BaseModel):
+    questions: List[str] = Field(description="List of sub-questions derived from the main question.")
+
+def break_down_question(question: str) -> List[str]:
+    """
+    Analyzes a given question using an LLM and breaks it down into sub-questions.
+
+    Args:
+        question: The main question to be broken down.
+
+    Returns:
+        A list of sub-question strings.
+    """
+    api_key = get_api_key()
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY not found.")
+
+    client = genai.Client(api_key=api_key)
+
+    prompt = f"""
+    You are an expert at dissecting complex questions into a series of simpler, actionable sub-questions.
+    Given the following main question, break it down into a list of constituent sub-questions that, when answered, collectively provide a comprehensive answer to the main question.
+    Each sub-question should be distinct and contribute to understanding the main question from a different angle or focusing on a specific detail.
+
+    Main Question: "{question}"
+    """
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=[prompt],
+            config={
+                "response_mime_type": "application/json",
+                "response_mime_type": "application/json",
+                "response_schema": SubQuestions.model_json_schema()
+            }
+        )
+        sub_questions_obj = SubQuestions.model_validate_json(response.text)
+        return sub_questions_obj.questions
+    except httpx.HTTPStatusError as e:
+        print(f"HTTP error during LLM call: {e}")
+        return []
+    except json.JSONDecodeError:
+        print(f"Failed to decode JSON from LLM response: {response.text}")
+        return []
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return []
+
 
 def extract_narrative_questions() -> List[str]:
     """
@@ -84,7 +134,8 @@ def extract_narrative_questions() -> List[str]:
             ],
             config={
                 "response_mime_type": "application/json",
-                "response_json_schema": NarrativeQuestions.model_json_schema()
+                "response_mime_type": "application/json",
+                "response_schema": NarrativeQuestions.model_json_schema()
             }
         )
         questions = NarrativeQuestions.model_validate_json(response.text)
@@ -164,15 +215,13 @@ def test_gemini_setup():
     print(f"✅ Found API Key: {api_key[:5]}...{api_key[-5:]}")
 
     try:
-        print("\nTesting Response Generation...")
-        test_outline = {
-            "sections": [
-                {"name": "Background", "description": "Provide organizational background"},
-                {"name": "Impact", "description": "Describe expected impact"}
-            ]
-        }
-        response = generate_response("write a narrative about your project", test_outline)
-        print(f"Generated Response:\n{response}")
+        print("\nTesting Question Breakdown...")
+        test_question = "What are the long-term effects of climate change on coastal ecosystems, and what mitigation strategies can be implemented?"
+        sub_questions = break_down_question(test_question)
+        print(f"Original Question: {test_question}")
+        print(f"Broken Down Sub-Questions:")
+        for i, sq in enumerate(sub_questions):
+            print(f"  {i+1}. {sq}")
     except ValueError as e:
         print(f"❌ Error: {e}")
     except Exception as e:
