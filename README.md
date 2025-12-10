@@ -3,8 +3,8 @@
 A full-stack application boilerplate with Next.js frontend and FastAPI backend.
 
 # To Run:
-1. Delete *ALL* files in the `backend/app/uploads/` folder
-2. Run `./start.sh` in the grant-writing-demo (top level) folder
+1. Run `./start.sh` in the grant-writing-demo (top level) folder
+2. Navigate to localhost:3000
 
 ## Tech Stack
 
