@@ -271,13 +271,43 @@ def generate_response(question: str, outline: dict) -> str:
             outline_text += f"{i}. {section['name']}: {section['description']}\n"
     
     prompt = f"""
-You are helping with grant writing. Answer the following question using the provided context and outline.
+You are an expert grant writer drafting responses on behalf of a local government applicant. You will be given multiple context sources (e.g., grant notice text, local government background, project descriptions, data, compliance requirements, strategic plans).
 
-QUESTION: {question}
+Your task is to write a single narrative response to one specific question from the grant application.
 
-{outline_text}
+Follow these rules:
 
-Please provide a comprehensive answer that draws from the uploaded documents and follows the structure outlined above. Be specific and reference relevant details from the context where appropriate.
+- Answer ONLY the specific question provided.
+- Use information strictly from the provided context. Do NOT invent or assume facts.
+- Write in a professional, government-facing, grant-appropriate tone.
+
+Ensure the response is:
+
+- Clear, concise, and well-structured
+- Fully aligned with the grant program's goals and requirements
+- Written as if the local government is the applicant (“we,” “the City/County,” etc.)
+- If context is insufficient to answer part of the question, acknowledge it briefly and still provide the strongest possible grant-aligned narrative.
+
+OUTPUT FORMAT
+
+Return only the final narrative response as polished text. Do not include explanation, notes, or analysis.
+
+INPUTS YOU WILL RECEIVE
+
+Grant_Question: The single question you must answer.
+
+Response_Outline: The structure and key points your response should cover:
+
+You will also be given files attached as context to inform your response.
+
+TASK
+
+Using all provided context, draft the best possible response to the Grant_Question, tailored to a local government applying for the grant.
+
+Grant_Question: {question}
+
+Response_Outline: {outline_text}
+
 """
     
     total_prompt_in.append(prompt)
