@@ -30,24 +30,32 @@ export default function GrantQuestionNavigator() {
     const fetchQuestions = async () => {
       try {
         setProcessingStatus("Extracting narrative questions from document...");
-        const extractRes = await fetch("http://localhost:8000/api/extract_questions", {
-          method: "POST",
-        });
+        const extractRes = await fetch(
+          "http://localhost:8000/api/extract_questions",
+          {
+            method: "POST",
+          }
+        );
         if (!extractRes.ok) throw new Error("Failed to extract questions");
-        
+
         const { questions: rawQuestions } = await extractRes.json();
         const processedQuestions: Question[] = [];
 
         for (let i = 0; i < rawQuestions.length; i++) {
           const qText = rawQuestions[i];
-          setProcessingStatus(`Breaking down question ${i + 1} of ${rawQuestions.length}...`);
-          
-          const breakdownRes = await fetch("http://localhost:8000/api/break_down_question", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: qText }),
-          });
-          
+          setProcessingStatus(
+            `Breaking down question ${i + 1} of ${rawQuestions.length}...`
+          );
+
+          const breakdownRes = await fetch(
+            "http://localhost:8000/api/break_down_question",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ question: qText }),
+            }
+          );
+
           let subQuestionsList: string[] = [];
           if (breakdownRes.ok) {
             const data = await breakdownRes.json();
@@ -58,13 +66,13 @@ export default function GrantQuestionNavigator() {
 
           processedQuestions.push({
             id: `q-${i}`,
-            title: qText.length > 50 ? qText.substring(0, 50) + "..." : qText, // Long title truncated
+            title: qText, // Long title truncated
             subQuestions: subQuestionsList.map((sq, idx) => ({
               id: `sq-${i}-${idx}`,
               label: sq,
-              notes: ""
+              notes: "",
             })),
-            draftAnswerParagraphs: []
+            draftAnswerParagraphs: [],
           });
         }
 
@@ -92,18 +100,26 @@ export default function GrantQuestionNavigator() {
 
   const currentQuestion = questions.find((q) => q.id === currentQuestionId);
 
-  const getQuestionStatus = (question: Question): "Not started" | "In progress" | "Complete" => {
+  const getQuestionStatus = (
+    question: Question
+  ): "Not started" | "In progress" | "Complete" => {
     if (question.draftAnswerParagraphs.length > 0) {
       return "Complete";
     }
-    const hasNotes = question.subQuestions.some((sq) => sq.notes.trim().length > 0);
+    const hasNotes = question.subQuestions.some(
+      (sq) => sq.notes.trim().length > 0
+    );
     if (hasNotes) {
       return "In progress";
     }
     return "Not started";
   };
 
-  const updateSubQuestion = (questionId: string, subQuestionId: string, updates: Partial<SubQuestion>) => {
+  const updateSubQuestion = (
+    questionId: string,
+    subQuestionId: string,
+    updates: Partial<SubQuestion>
+  ) => {
     setQuestions((prev) =>
       prev.map((q) =>
         q.id === questionId
@@ -124,7 +140,9 @@ export default function GrantQuestionNavigator() {
         q.id === questionId
           ? {
               ...q,
-              subQuestions: q.subQuestions.filter((sq) => sq.id !== subQuestionId),
+              subQuestions: q.subQuestions.filter(
+                (sq) => sq.id !== subQuestionId
+              ),
             }
           : q
       )
@@ -157,26 +175,32 @@ export default function GrantQuestionNavigator() {
     try {
       // Build the outline from sub-questions and notes
       const outline = {
-        sections: question.subQuestions.map(sq => ({
+        sections: question.subQuestions.map((sq) => ({
           name: sq.label,
-          description: sq.notes || "Include relevant details based on the context."
-        }))
+          description:
+            sq.notes || "Include relevant details based on the context.",
+        })),
       };
 
       // Call Backend
-      const response = await fetch("http://localhost:8000/api/generate_response", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: question.title, // Pass the full title/question
-          outline: outline
-        })
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/generate_response",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: question.title, // Pass the full title/question
+            outline: outline,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        const paragraphs = data.response.split("\n\n").filter((p: string) => p.trim());
-        
+        const paragraphs = data.response
+          .split("\n\n")
+          .filter((p: string) => p.trim());
+
         setQuestions((prev) =>
           prev.map((q) =>
             q.id === questionId
@@ -198,20 +222,22 @@ export default function GrantQuestionNavigator() {
   };
 
   if (loading) {
-     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Analyzing Grant Document</h2>
-            <p className="text-gray-600">{processingStatus}</p>
-        </div>
-     );
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Analyzing Grant Document
+        </h2>
+        <p className="text-gray-600">{processingStatus}</p>
+      </div>
+    );
   }
 
   if (!currentQuestion) {
-      return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-              <p>No questions found or extracted.</p>
-          </div>
-      );
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <p>No questions found or extracted.</p>
+      </div>
+    );
   }
 
   return (
@@ -220,9 +246,12 @@ export default function GrantQuestionNavigator() {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Question Navigator</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              Question Navigator
+            </h1>
             <p className="text-lg text-gray-700">
-              Break down each question, add your research, and generate draft answers.
+              Break down each question, add your research, and generate draft
+              answers.
             </p>
           </div>
           <Button
@@ -237,9 +266,11 @@ export default function GrantQuestionNavigator() {
         {/* Two-column layout */}
         <div className="flex gap-6">
           {/* LEFT: Table of Contents */}
-          <div className="w-64 flex-shrink-0">
+          <div className="w-64 flex-shrink-0 overflow-auto">
             <Card className="p-4 bg-white shadow-md border border-gray-200 sticky top-8">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Questions</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                Questions
+              </h2>
               <div className="space-y-2">
                 {questions.map((question) => {
                   const status = getQuestionStatus(question);
@@ -282,7 +313,7 @@ export default function GrantQuestionNavigator() {
             <Card className="p-8 bg-white shadow-md border border-gray-200">
               {/* Question Header */}
               <div className="mb-6">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2 whitespace-normal">
                   {currentQuestion.title}
                 </h2>
                 <p className="text-gray-600">
@@ -292,9 +323,14 @@ export default function GrantQuestionNavigator() {
 
               {/* Sub-questions Editor */}
               <div className="space-y-6 mb-8">
-                <h3 className="text-xl font-semibold text-gray-900">Sub-questions</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Sub-questions
+                </h3>
                 {currentQuestion.subQuestions.map((subQ, index) => (
-                  <div key={subQ.id} className="border-2 border-gray-200 rounded-lg p-4 space-y-3">
+                  <div
+                    key={subQ.id}
+                    className="border-2 border-gray-200 rounded-lg p-4 space-y-3"
+                  >
                     {/* Sub-question Label */}
                     <div className="flex items-start gap-3">
                       <span className="text-sm font-semibold text-gray-500 mt-2">
@@ -304,7 +340,9 @@ export default function GrantQuestionNavigator() {
                         type="text"
                         value={subQ.label}
                         onChange={(e) =>
-                          updateSubQuestion(currentQuestion.id, subQ.id, { label: e.target.value })
+                          updateSubQuestion(currentQuestion.id, subQ.id, {
+                            label: e.target.value,
+                          })
                         }
                         className="flex-1 px-3 py-2 text-base font-semibold text-gray-900 
                           border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 
@@ -313,7 +351,9 @@ export default function GrantQuestionNavigator() {
                       />
                       <button
                         type="button"
-                        onClick={() => deleteSubQuestion(currentQuestion.id, subQ.id)}
+                        onClick={() =>
+                          deleteSubQuestion(currentQuestion.id, subQ.id)
+                        }
                         className="px-3 py-2 text-sm font-semibold text-red-600 hover:text-red-700 
                           hover:bg-red-50 rounded-lg transition-colors"
                         aria-label="Delete sub-question"
@@ -330,7 +370,9 @@ export default function GrantQuestionNavigator() {
                       <textarea
                         value={subQ.notes}
                         onChange={(e) =>
-                          updateSubQuestion(currentQuestion.id, subQ.id, { notes: e.target.value })
+                          updateSubQuestion(currentQuestion.id, subQ.id, {
+                            notes: e.target.value,
+                          })
                         }
                         placeholder="Add context or research you've already done..."
                         rows={4}
@@ -371,10 +413,13 @@ export default function GrantQuestionNavigator() {
               {currentQuestion.draftAnswerParagraphs.length > 0 && (
                 <div className="border-t-2 border-gray-200 pt-8">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-2xl font-bold text-gray-900">Draft Answer</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      Draft Answer
+                    </h3>
                     <button
                       onClick={() => {
-                        const text = currentQuestion.draftAnswerParagraphs.join("\n\n");
+                        const text =
+                          currentQuestion.draftAnswerParagraphs.join("\n\n");
                         navigator.clipboard.writeText(text);
                       }}
                       className="px-4 py-2 text-sm font-semibold text-blue-600 bg-blue-50 
@@ -388,7 +433,7 @@ export default function GrantQuestionNavigator() {
                   {/* Main answer display */}
                   <div className="flex gap-6">
                     {/* Left: Paragraph indicators */}
-                    <div className="w-48 flex-shrink-0 space-y-4">
+                    {/* <div className="w-48 flex-shrink-0 space-y-4">
                       {currentQuestion.draftAnswerParagraphs.map((_, index) => {
                         const subQuestion = currentQuestion.subQuestions[index];
                         return (
@@ -403,27 +448,43 @@ export default function GrantQuestionNavigator() {
                           </div>
                         );
                       })}
-                    </div>
+                    </div> */}
 
                     {/* Right: Continuous paragraph text */}
                     <div className="flex-1 bg-white border-2 border-gray-300 rounded-lg p-6 shadow-sm">
-                      <div className="prose prose-gray max-w-none">
-                        {currentQuestion.draftAnswerParagraphs.map((paragraph, index) => (
-                          <p
-                            key={index}
-                            className="text-base text-gray-900 leading-relaxed mb-4 last:mb-0"
-                          >
-                            {paragraph}
-                          </p>
-                        ))}
-                      </div>
+                      <textarea
+                        value={currentQuestion.draftAnswerParagraphs.join(
+                          "\n\n"
+                        )}
+                        onChange={(e) => {
+                          const paragraphs = e.target.value
+                            .split("\n\n")
+                            .filter((p) => p.trim());
+                          setQuestions((prev) =>
+                            prev.map((q) =>
+                              q.id === currentQuestion.id
+                                ? {
+                                    ...q,
+                                    draftAnswerParagraphs: paragraphs,
+                                  }
+                                : q
+                            )
+                          );
+                        }}
+                        rows={12}
+                        className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg 
+                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                          text-gray-900 resize-y font-normal h-auto field-sizing-content"
+                      />
                     </div>
                   </div>
 
                   <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-800">
-                      💡 <strong>Tip:</strong> You can edit sub-questions or notes and regenerate 
-                      the draft answer to update the content. Use the copy button to paste into your grant application.
+                      💡 <strong>Tip:</strong> You can edit sub-questions or
+                      notes and regenerate the draft answer to update the
+                      content. Use the copy button to paste into your grant
+                      application.
                     </p>
                   </div>
                 </div>

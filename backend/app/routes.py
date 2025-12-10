@@ -185,6 +185,30 @@ async def upload_grant(
     """
     Upload a grant document with department and county information
     """
+    
+    import os
+    import shutil
+
+    # Assuming get_upload_path() without arguments returns the base upload directory.
+    # If not, replace `get_upload_path()` with the actual path to your upload directory,
+    # e.g., `os.getenv("UPLOAD_DIR", "uploads")` or a predefined constant.
+    upload_dir = get_upload_path("") 
+    
+    # Ensure the directory exists before trying to remove its contents
+    if os.path.exists(upload_dir) and os.path.isdir(upload_dir):
+        for filename in os.listdir(upload_dir):
+            file_path = os.path.join(upload_dir, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                # Log the error or handle it as appropriate for your application
+                print(f"Failed to delete {file_path}. Reason: {e}")
+
+
+
     try:
         # Generate a unique ID for the file
         file_id = str(uuid.uuid4())

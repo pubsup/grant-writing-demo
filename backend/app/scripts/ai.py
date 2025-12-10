@@ -36,7 +36,7 @@ def get_api_key():
     return api_key
 
 class SubQuestions(BaseModel):
-    questions: List[str] = Field(description="List of sub-questions derived from the main question.")
+    subquestions: List[str] = Field(description="List of sub-questions derived from the main question.")
 
 def break_down_question(question: str) -> List[str]:
     """
@@ -52,14 +52,68 @@ def break_down_question(question: str) -> List[str]:
     if not api_key:
         raise ValueError("GEMINI_API_KEY not found.")
 
-    client = genai.Client(api_key=api_key)
+    client = genai.Client()
 
     prompt = f"""
-    You are an expert at dissecting complex questions into a series of simpler, actionable sub-questions.
-    Given the following main question, break it down into a list of constituent sub-questions that, when answered, collectively provide a comprehensive answer to the main question.
-    Each sub-question should be distinct and contribute to understanding the main question from a different angle or focusing on a specific detail.
+You are an AI assistant that analyzes a single narrative question from a government grant application and breaks it into the key sub-questions, components, or sections that an applicant must address in order to fully answer the original question.
 
-    Main Question: "{question}"
+Your Task:
+
+Given one narrative question, decompose it into a small set of clear, actionable sub-questions.
+These sub-questions should:
+
+- Capture all the major elements required for a strong, complete response
+- Reflect the implicit expectations behind typical government grant scoring rubrics
+- Help the applicant understand exactly what components to cover in their narrative
+
+Guidelines:
+
+When breaking down the question:
+
+- Identify all conceptual parts embedded in the question (e.g., need, goals, activities, outcomes, partners, timeline, population served, evidence, evaluation, sustainability).
+- Make implicit expectations explicit—if the question implies justification, significance, or evidence, include them.
+- Do not rewrite the original question; only deconstruct it.
+- Do not answer the question.
+- Sub-questions should be concise but clear enough that an applicant could respond directly.
+- Aim for 3-5 sub-questions, depending on complexity. Less sub questions is better.
+- Make each sub-question focused on a single aspect.
+- Each sub-question should be distinct and non-overlapping.
+
+Output Format:
+
+Output a JSON object with this structure:
+
+{{
+  "subquestions": [
+    "string",
+    "string",
+    "string"
+  ]
+}}
+
+
+Where each string is a required component or sub-question derived from the original narrative prompt.
+
+Example
+
+Input question:
+"Describe the community need this project addresses and explain how your proposed activities will meet that need."
+
+Output:
+
+{{
+  "subquestions": [
+    "What specific community need or problem does the project address?",
+    "Who is affected by this need?",
+    "How do you know this need exists?",
+    "How do these activities address the identified need?"
+  ]
+}}
+
+Final Requirement:
+Your output must be only the JSON object.
+
+Here is the question: {question}
     """
 
     try:
@@ -73,7 +127,7 @@ def break_down_question(question: str) -> List[str]:
             }
         )
         sub_questions_obj = SubQuestions.model_validate_json(response.text)
-        return sub_questions_obj.questions
+        return sub_questions_obj.subquestions
     except httpx.HTTPStatusError as e:
         print(f"HTTP error during LLM call: {e}")
         return []
@@ -114,12 +168,46 @@ def extract_narrative_questions() -> List[str]:
         raise ValueError(f"Grant document not found at {file_path}")
 
     prompt = """
-    Analyze the provided grant form or application document.
-    Extract all the "narrative questions" or "essay questions" that an applicant needs to answer.
-    Ignore simple fields like name, address, date, etc. Focus on questions requiring multiline text responses.
-    
-    Return the result strictly as a JSON list of strings. Each string is a question.
-    Example format: ["Question 1 text...", "Question 2 text..."]
+You are an AI assistant that extracts only the narrative questions from a government grant application.
+Narrative questions are prompts that require the applicant to write multi-sentence or paragraph-length responses in their own words. These typically ask for descriptions, explanations, plans, justifications, needs assessments, project narratives, community impact statements, etc.
+
+Your Task:
+
+Given the full text of a government grant application, identify and output only the narrative questions — questions that require free-form text responses.
+Ignore and do not output:
+
+- Yes/No questions
+- Multiple-choice questions
+- Checkboxes, tables, numeric fields
+- Budget line items
+- Eligibility attestations
+- Upload requests (“Upload your budget”, “Attach resume”)
+- Anything that is not a written narrative response by the applicant
+
+Definition of Narrative Questions:
+
+A narrative question must require the applicant to write a meaningful written response, typically beginning with prompts like:
+
+- “Describe…”
+- “Explain…”
+- “Provide a justification for…”
+- “Summarize…”
+- “Detail the plan for…”
+- “What is the need for…?”
+- “How will the project…?”
+
+This list is not exhaustive. Other prompts may also be narrative questions.
+
+Output Format:
+
+Return your answer as a JSON array of strings.
+
+Instructions:
+
+- Preserve the exact wording of each narrative question.
+- Do not rewrite, summarize, or merge questions.
+- Only output narrative questions that require written narrative responses.
+- If no narrative questions exist, return an empty list [].
     """
     
     try:
@@ -133,7 +221,6 @@ def extract_narrative_questions() -> List[str]:
                 prompt
             ],
             config={
-                "response_mime_type": "application/json",
                 "response_mime_type": "application/json",
                 "response_schema": NarrativeQuestions.model_json_schema()
             }
