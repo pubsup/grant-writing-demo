@@ -132,13 +132,6 @@ export default function GrantDashboardPage() {
                 status changes, and live progress tracking.
               </p>
             </div>
-            <div className="rounded-2xl bg-white/60 border border-white/60 px-6 py-4 shadow-lg shadow-black/5">
-              <p className="text-sm text-slate-500">Next deadline</p>
-              <p className="text-2xl font-semibold text-slate-900 mt-1">
-                Community Mobility Access
-              </p>
-              <p className="text-sm text-slate-500 mt-1">Sep 12, 2024</p>
-            </div>
           </div>
 
           <section className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -169,48 +162,50 @@ export default function GrantDashboardPage() {
                   All grants currently in-flight across departments.
                 </p>
               </div>
-              <button
-                type="button"
-                className="text-sm font-medium text-slate-700 border border-slate-200 bg-white/70 px-4 py-2 rounded-full hover:bg-white transition"
-              >
-                Export summary
-              </button>
             </div>
 
-            <div className="mt-6 rounded-2xl border border-white/70 bg-white/70 shadow-xl shadow-black/5 overflow-hidden">
-              <table className="w-full text-left text-sm">
+            <div className="mt-6 rounded-2xl bg-white/70 shadow-xl shadow-black/5 overflow-hidden">
+              <table className="w-full text-left text-sm border-collapse">
                 <thead className="bg-white/70 text-slate-500">
                   <tr>
-                    <th className="px-6 py-4 font-medium">Grant</th>
-                    <th className="px-6 py-4 font-medium">Agency</th>
-                    <th className="px-6 py-4 font-medium">Owner</th>
-                    <th className="px-6 py-4 font-medium">Status</th>
-                    <th className="px-6 py-4 font-medium">Due</th>
-                    <th className="px-6 py-4 font-medium">Progress</th>
+                    <th className="px-6 py-4 font-medium border border-slate-200/60">
+                      Grant
+                    </th>
+                    <th className="px-6 py-4 font-medium border border-slate-200/60">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 font-medium border border-slate-200/60">
+                      Agency
+                    </th>
+                    <th className="px-6 py-4 font-medium border border-slate-200/60">
+                      Owner
+                    </th>
+                    <th className="px-6 py-4 font-medium border border-slate-200/60">
+                      Due
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/70">
                   {grants.map((grant) => (
                     <tr key={grant.name} className="hover:bg-white/80">
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 border border-slate-200/60">
                         <p className="font-semibold text-slate-900">
                           {grant.name}
                         </p>
                       </td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {grant.agency}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {grant.owner}
-                      </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 border border-slate-200/60">
                         <span className="rounded-full bg-[#0d2a2b]/10 text-[#0d2a2b] px-3 py-1 text-xs font-semibold">
                           {grant.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-slate-600">{grant.due}</td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {grant.progress}
+                      <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
+                        {grant.agency}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
+                        {grant.owner}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
+                        {grant.due}
                       </td>
                     </tr>
                   ))}

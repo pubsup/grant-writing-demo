@@ -97,13 +97,6 @@ export default function GrantDocumentsPage() {
                 team works from the latest approved templates.
               </p>
             </div>
-            <div className="rounded-2xl bg-white/60 border border-white/60 px-6 py-4 shadow-lg shadow-black/5">
-              <p className="text-sm text-slate-500">Latest upload</p>
-              <p className="text-2xl font-semibold text-slate-900 mt-1">
-                Letters of Support Bundle
-              </p>
-              <p className="text-sm text-slate-500 mt-1">Aug 20, 2024</p>
-            </div>
           </div>
 
           <section className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
@@ -147,80 +140,59 @@ export default function GrantDocumentsPage() {
                 </div>
               </div>
             </div>
-
-            <div className="rounded-2xl border border-white/70 bg-white/70 shadow-xl shadow-black/5 p-6">
-              <h3 className="text-lg font-semibold text-slate-900">
-                Quick actions
-              </h3>
-              <div className="mt-4 space-y-3 text-sm text-slate-600">
-                <div className="rounded-xl border border-white/70 bg-white/70 p-4">
-                  Flag outdated templates for review.
-                </div>
-                <div className="rounded-xl border border-white/70 bg-white/70 p-4">
-                  Sync shared documents with your grant workspace.
-                </div>
-                <div className="rounded-xl border border-white/70 bg-white/70 p-4">
-                  Export approved templates as a starter kit.
-                </div>
-              </div>
-            </div>
           </section>
 
           <section className="mt-12">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-slate-900">
-                  Existing templates
-                </h3>
-                <p className="text-sm text-slate-600 mt-1">
-                  Review, replace, or archive current files.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="text-sm font-medium text-slate-700 border border-slate-200 bg-white/70 px-4 py-2 rounded-full hover:bg-white transition"
-              >
-                Manage folders
-              </button>
-            </div>
-
-            <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {templates.map((doc) => (
-                <div
-                  key={doc.name}
-                  className="rounded-2xl border border-white/70 bg-white/70 shadow-xl shadow-black/5 p-5 hover:bg-white/80 transition"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-[#0d2a2b]/10 text-[#0d2a2b] flex items-center justify-center text-sm font-semibold">
-                      {doc.type}
-                    </div>
-                    <span className="rounded-full bg-[#0d2a2b]/10 text-[#0d2a2b] px-3 py-1 text-xs font-semibold">
-                      {doc.status}
-                    </span>
-                  </div>
-                  <div className="mt-4">
-                    <p className="font-semibold text-slate-900">{doc.name}</p>
-                    <p className="text-sm text-slate-600 mt-1">{doc.owner}</p>
-                    <p className="text-xs text-slate-500 mt-2">
-                      Updated {doc.updated}
-                    </p>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between text-sm">
-                    <button
-                      className="font-semibold text-[#0d2a2b] hover:underline"
-                      type="button"
-                    >
-                      Open
-                    </button>
-                    <button
-                      className="text-slate-500 hover:text-slate-700"
-                      type="button"
-                    >
-                      Manage
-                    </button>
-                  </div>
+            <div className="rounded-2xl border border-white/70 bg-white/70 shadow-xl shadow-black/5 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-900">
+                    Existing templates
+                  </h3>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Review, replace, or archive current files.
+                  </p>
                 </div>
-              ))}
+              </div>
+
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {templates.map((doc) => (
+                  <div
+                    key={doc.name}
+                    className="rounded-2xl outline outline-1 outline-slate-200/60 border border-white/70 bg-white/70 shadow-xl shadow-black/5 p-5 hover:bg-white/80 transition"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-[#0d2a2b]/10 text-[#0d2a2b] flex items-center justify-center text-sm font-semibold">
+                        {doc.type}
+                      </div>
+                      <span className="rounded-full bg-[#0d2a2b]/10 text-[#0d2a2b] px-3 py-1 text-xs font-semibold">
+                        {doc.status}
+                      </span>
+                    </div>
+                    <div className="mt-4">
+                      <p className="font-semibold text-slate-900">{doc.name}</p>
+                      <p className="text-sm text-slate-600 mt-1">{doc.owner}</p>
+                      <p className="text-xs text-slate-500 mt-2">
+                        Updated {doc.updated}
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                      <button
+                        className="font-semibold text-[#0d2a2b] hover:underline"
+                        type="button"
+                      >
+                        Open
+                      </button>
+                      <button
+                        className="text-slate-500 hover:text-slate-700"
+                        type="button"
+                      >
+                        Manage
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         </main>
