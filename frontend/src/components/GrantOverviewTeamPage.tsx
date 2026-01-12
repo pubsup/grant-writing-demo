@@ -280,16 +280,6 @@ export default function GrantOverviewTeamPage({
                 this grant moving.
               </p>
             </div>
-            <div className="rounded-2xl bg-white/60 border border-white/60 px-6 py-4 shadow-lg shadow-black/5">
-              <p className="text-sm text-slate-500">Tasks assigned</p>
-              <p className="text-2xl font-semibold text-slate-900 mt-1">
-                {tasks.length} tasks
-              </p>
-              <p className="text-sm text-slate-500 mt-1">
-                {tasks.filter((task) => task.status === "Complete").length}{" "}
-                complete
-              </p>
-            </div>
           </div>
 
           <section className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_1fr]">

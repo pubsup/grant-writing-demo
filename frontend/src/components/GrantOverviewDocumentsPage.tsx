@@ -116,13 +116,6 @@ export default function GrantOverviewDocumentsPage({
                 the right templates for consistent submissions.
               </p>
             </div>
-            <div className="rounded-2xl bg-white/60 border border-white/60 px-6 py-4 shadow-lg shadow-black/5">
-              <p className="text-sm text-slate-500">Documents in scope</p>
-              <p className="text-2xl font-semibold text-slate-900 mt-1">
-                {contextDocuments.length} active files
-              </p>
-              <p className="text-sm text-slate-500 mt-1">Updated today</p>
-            </div>
           </div>
 
           <section className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -169,20 +162,27 @@ export default function GrantOverviewDocumentsPage({
               </p>
               <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-white/60 px-4 py-6 text-left">
                 <p className="text-sm text-slate-600">
-                  Provide a short description before uploading.
+                  Add a title and short description before uploading.
                 </p>
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="mt-4 flex flex-col gap-3">
                   <input
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
-                    placeholder="Add a short description for the file"
+                    placeholder="Title"
                     type="text"
                   />
-                  <Button
-                    className="bg-[#f29f5c] text-[#0d2a2b] hover:bg-[#f6b57f] font-semibold"
-                    type="button"
-                  >
-                    Upload context
-                  </Button>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                    placeholder="Short description"
+                    type="text"
+                  />
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <Button
+                      className="bg-[#f29f5c] text-[#0d2a2b] hover:bg-[#f6b57f] font-semibold"
+                      type="button"
+                    >
+                      Upload context
+                    </Button>
+                  </div>
                 </div>
                 <p className="text-xs text-slate-500 mt-3">
                   Accepted formats: PDF, DOCX, XLSX, CSV.

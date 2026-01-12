@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Form
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 from app.scripts import ai
+from app.database import add_file_metadata, add_to_grants_database
 
 api_router = APIRouter()
 
@@ -118,12 +119,11 @@ async def upload_file(file: UploadFile = File(...)):
             "stored_name": stored_filename,
             "content_type": file.content_type,
             "doc_role": "context",
-            "upload_timestamp": time.time(),
-            "size_bytes": os.path.getsize(file_path)
+            "upload_timestamp": time.time()
         }
         
         # Save metadata
-        save_upload_metadata(metadata)
+        add_file_metadata(metadata)
         
         return {
             "message": "File uploaded successfully", 
@@ -179,8 +179,10 @@ async def upload_text(request: TextUploadRequest):
 @api_router.post("/upload_grant")
 async def upload_grant(
     file: UploadFile = File(...),
+    grant_name: str = Form(...),
     department: str = Form(...),
-    county: str = Form(...)
+    county: str = Form(...),
+    due_date: str = Form(...),
 ):
     """
     Upload a grant document with department and county information
@@ -221,34 +223,56 @@ async def upload_grant(
         file_path = get_upload_path(stored_filename)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        grant_id = str(uuid.uuid4())
             
         # Create metadata including department and county
-        metadata = {
+        file_metadata = {
             "id": file_id,
             "original_name": original_filename,
             "stored_name": stored_filename,
             "content_type": file.content_type,
             "doc_role": "grant",
             "upload_timestamp": time.time(),
-            "size_bytes": os.path.getsize(file_path),
-            "department": department,
-            "county": county
+            "grant_id": grant_id,
         }
         
         # Save metadata
-        save_upload_metadata(metadata)
+        add_file_metadata(file_metadata)
+
+        questions = ai.extract_narrative_questions(grant_id = grant_id)
+
+        grant_questions = []
+
+        for question in questions:
+            question_breakdown = ai.break_down_question(question)
+            grant_questions.append({
+                "question": question,
+                "sub_questions": question_breakdown
+            })
+
+        grant_entry = {
+            "id": grant_id,
+            "name": grant_name,
+            "department": department,
+            "county": county,
+            "due_date": due_date,
+            "questions": grant_questions,
+            "status": "researching"
+        }
+
+        add_to_grants_database(grant_entry)
         
         return {
             "message": "Grant document uploaded successfully", 
             "file_id": file_id,
-            "file_info": metadata
         }
+        
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 # AI Workflow Endpoints
-
 @api_router.post("/extract_questions")
 async def extract_questions():
     """
@@ -288,5 +312,16 @@ async def generate_response(request: GenerateResponseRequest):
     try:
         response_text = ai.generate_response(request.question, request.outline)
         return {"response": response_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@api_router.get("/all_grants")
+async def get_all_grants():
+    """
+    Retrieve all grants from the in-memory database.
+    """
+    try:
+        from app.database import grants_database
+        return {"grants": grants_database}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,4 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 const stats = [
@@ -24,50 +28,55 @@ const stats = [
   },
 ];
 
-const grants = [
-  {
-    name: "Community Mobility Access",
-    agency: "DOT Safe Streets",
-    owner: "Planning Dept.",
-    status: "Drafting",
-    due: "Sep 12, 2024",
-    progress: "45%",
-  },
-  {
-    name: "Water Infrastructure Upgrade",
-    agency: "EPA SRF",
-    owner: "Public Works",
-    status: "Internal Review",
-    due: "Oct 02, 2024",
-    progress: "68%",
-  },
-  {
-    name: "Main Street Revitalization",
-    agency: "EDA Build Back",
-    owner: "Economic Dev.",
-    status: "Submitting",
-    due: "Aug 30, 2024",
-    progress: "92%",
-  },
-  {
-    name: "Wildfire Mitigation",
-    agency: "FEMA BRIC",
-    owner: "Emergency Mgmt.",
-    status: "Research",
-    due: "Oct 18, 2024",
-    progress: "26%",
-  },
-  {
-    name: "Parks & Trails Expansion",
-    agency: "State Recreation",
-    owner: "Parks Dept.",
-    status: "Budgeting",
-    due: "Sep 28, 2024",
-    progress: "54%",
-  },
-];
+type Grant = {
+  id?: string;
+  name?: string;
+  department?: string;
+  county?: string;
+  due_date?: string;
+  status?: string;
+};
 
 export default function GrantDashboardPage() {
+  const router = useRouter();
+  const [grants, setGrants] = useState<Grant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchGrants = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/all_grants");
+        if (!response.ok) {
+          throw new Error("Failed to load grants.");
+        }
+        const data = await response.json();
+        if (isMounted) {
+          setGrants(Array.isArray(data?.grants) ? data.grants : []);
+          setLoadError(null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLoadError(
+            error instanceof Error ? error.message : "Failed to load grants."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchGrants();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-slate-900">
       <div className="flex min-h-screen">
@@ -186,29 +195,80 @@ export default function GrantDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/70">
-                  {grants.map((grant) => (
-                    <tr key={grant.name} className="hover:bg-white/80">
-                      <td className="px-6 py-4 border border-slate-200/60">
-                        <p className="font-semibold text-slate-900">
-                          {grant.name}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 border border-slate-200/60">
-                        <span className="rounded-full bg-[#0d2a2b]/10 text-[#0d2a2b] px-3 py-1 text-xs font-semibold">
-                          {grant.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
-                        {grant.agency}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
-                        {grant.owner}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
-                        {grant.due}
+                  {isLoading && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-6 text-slate-500 border border-slate-200/60"
+                      >
+                        Loading grants...
                       </td>
                     </tr>
-                  ))}
+                  )}
+                  {!isLoading && loadError && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-6 text-[#8b4b1a] border border-slate-200/60"
+                      >
+                        {loadError}
+                      </td>
+                    </tr>
+                  )}
+                  {!isLoading && !loadError && grants.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-6 text-slate-500 border border-slate-200/60"
+                      >
+                        No grants yet. Upload a grant to get started.
+                      </td>
+                    </tr>
+                  )}
+                  {!isLoading &&
+                    !loadError &&
+                    grants.map((grant, index) => (
+                      <tr
+                        key={grant.id || grant.name || `grant-${index}`}
+                        className="hover:bg-white/80 cursor-pointer"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => {
+                          if (grant.id) {
+                            router.push(`/overview/${grant.id}`);
+                          }
+                        }}
+                        onKeyDown={(event) => {
+                          if (!grant.id) {
+                            return;
+                          }
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            router.push(`/overview/${grant.id}`);
+                          }
+                        }}
+                      >
+                        <td className="px-6 py-4 border border-slate-200/60">
+                          <p className="font-semibold text-slate-900">
+                            {grant.name || "Untitled grant"}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4 border border-slate-200/60">
+                          <span className="rounded-full bg-[#0d2a2b]/10 text-[#0d2a2b] px-3 py-1 text-xs font-semibold">
+                            {grant.status || "Pending"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
+                          {grant.county || "—"}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
+                          {grant.department || "—"}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 border border-slate-200/60">
+                          {grant.due_date || "—"}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

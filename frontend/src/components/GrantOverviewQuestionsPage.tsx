@@ -91,6 +91,7 @@ export default function GrantOverviewQuestionsPage({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
+        throw new Error("Using fallback questions"); // Temporary: always use fallback
         setProcessingStatus("Extracting narrative questions from document...");
         const extractRes = await fetch(
           "http://localhost:8000/api/extract_questions",

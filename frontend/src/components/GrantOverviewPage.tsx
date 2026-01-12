@@ -1,42 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-const grantCatalog: Record<
-  string,
-  { name: string; agency: string; status: string; due: string }
-> = {
-  "community-mobility-access": {
-    name: "Community Mobility Access",
-    agency: "DOT Safe Streets",
-    status: "Drafting",
-    due: "Sep 12, 2024",
-  },
-  "water-infrastructure-upgrade": {
-    name: "Water Infrastructure Upgrade",
-    agency: "EPA SRF",
-    status: "Internal Review",
-    due: "Oct 02, 2024",
-  },
-  "main-street-revitalization": {
-    name: "Main Street Revitalization",
-    agency: "EDA Build Back",
-    status: "Submitting",
-    due: "Aug 30, 2024",
-  },
-  "wildfire-mitigation": {
-    name: "Wildfire Mitigation",
-    agency: "FEMA BRIC",
-    status: "Research",
-    due: "Oct 18, 2024",
-  },
-  "parks-trails-expansion": {
-    name: "Parks & Trails Expansion",
-    agency: "State Recreation",
-    status: "Budgeting",
-    due: "Sep 28, 2024",
-  },
-};
-
 const stats = [
   { label: "Overall Progress", value: "58%", detail: "On track this month" },
   { label: "Tasks Completed", value: "24", detail: "8 outstanding" },
@@ -46,14 +10,24 @@ const stats = [
 
 type GrantOverviewPageProps = {
   grantId: string;
+  grant?: {
+    id?: string;
+    name?: string;
+    department?: string;
+    county?: string;
+    due_date?: string;
+    status?: string;
+  };
 };
 
-export default function GrantOverviewPage({ grantId }: GrantOverviewPageProps) {
-  const grant = grantCatalog[grantId];
+export default function GrantOverviewPage({
+  grantId,
+  grant,
+}: GrantOverviewPageProps) {
   const title = grant?.name ?? "Grant Overview";
-  const agency = grant?.agency ?? "Unknown agency";
+  const agency = grant?.department ?? grant?.county ?? "Unknown agency";
   const status = grant?.status ?? "In progress";
-  const due = grant?.due ?? "TBD";
+  const due = grant?.due_date ?? "TBD";
 
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-slate-900">
@@ -120,15 +94,6 @@ export default function GrantOverviewPage({ grantId }: GrantOverviewPageProps) {
                 Agency: <span className="font-semibold">{agency}</span> ·
                 Status: <span className="font-semibold">{status}</span> · Due{" "}
                 {due}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-white/60 border border-white/60 px-6 py-4 shadow-lg shadow-black/5">
-              <p className="text-sm text-slate-500">Current phase</p>
-              <p className="text-2xl font-semibold text-slate-900 mt-1">
-                Draft narrative
-              </p>
-              <p className="text-sm text-slate-500 mt-1">
-                3 reviewers assigned
               </p>
             </div>
           </div>

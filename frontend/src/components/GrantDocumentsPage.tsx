@@ -159,7 +159,7 @@ export default function GrantDocumentsPage() {
                 {templates.map((doc) => (
                   <div
                     key={doc.name}
-                    className="rounded-2xl outline outline-1 outline-slate-200/60 border border-white/70 bg-white/70 shadow-xl shadow-black/5 p-5 hover:bg-white/80 transition"
+                    className="rounded-2xl outline outline-1 outline-slate-200/60  border border-white/70 bg-white/70 shadow-xl shadow-black/5 p-5 hover:bg-white/80 transition"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="h-12 w-12 rounded-xl bg-[#0d2a2b]/10 text-[#0d2a2b] flex items-center justify-center text-sm font-semibold">

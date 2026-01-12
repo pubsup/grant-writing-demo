@@ -9,15 +9,22 @@ import { Card } from "@/components/ui/card";
 export default function NewProjectPage() {
   const router = useRouter();
   const [fileName, setFileName] = useState<string>("");
+  const [grantName, setGrantName] = useState<string>("");
+  const [dueDate, setDueDate] = useState<string>("");
   const [department, setDepartment] = useState<string>("");
   const [county, setCounty] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{
     file?: string;
+    grantName?: string;
+    dueDate?: string;
     department?: string;
     county?: string;
   }>({});
   const [touched, setTouched] = useState<{
     file?: boolean;
+    grantName?: boolean;
+    dueDate?: boolean;
     department?: boolean;
     county?: boolean;
   }>({});
@@ -38,6 +45,12 @@ export default function NewProjectPage() {
     if (!fileName) {
       newErrors.file = "Please upload a grant document.";
     }
+    if (!grantName.trim()) {
+      newErrors.grantName = "Please enter the grant name.";
+    }
+    if (!dueDate) {
+      newErrors.dueDate = "Please select the due date.";
+    }
     if (!department.trim()) {
       newErrors.department = "Please enter your department name.";
     }
@@ -54,11 +67,14 @@ export default function NewProjectPage() {
 
     setTouched({
       file: true,
+      grantName: true,
+      dueDate: true,
       department: true,
       county: true,
     });
 
     if (validate()) {
+      setIsSubmitting(true);
       try {
         const formData = new FormData();
         const fileInput = document.getElementById(
@@ -67,6 +83,8 @@ export default function NewProjectPage() {
         if (fileInput.files?.[0]) {
           formData.append("file", fileInput.files[0]);
         }
+        formData.append("grant_name", grantName);
+        formData.append("due_date", dueDate);
         formData.append("department", department);
         formData.append("county", county);
 
@@ -76,20 +94,39 @@ export default function NewProjectPage() {
         });
 
         if (response.ok) {
-          router.push("/context");
+          router.push("/dashboard");
         } else {
           console.error("Upload failed:", response.statusText);
         }
       } catch (error) {
         console.error("Upload error:", error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
 
-  const isFormValid = fileName && department.trim() && county.trim();
+  const isFormValid =
+    fileName &&
+    grantName.trim() &&
+    dueDate &&
+    department.trim() &&
+    county.trim() &&
+    !isSubmitting;
 
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-slate-900">
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d2a2b]/80 text-white">
+          <div className="text-center">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+            <p className="mt-4 text-lg font-semibold">Uploading grant...</p>
+            <p className="mt-1 text-sm text-white/80">
+              This can take a moment while we process your document.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="flex min-h-screen">
         <aside className="w-72 h-screen sticky top-0 flex-none bg-[#0d2a2b] text-slate-100 px-6 py-8 flex flex-col gap-10">
           <div>
@@ -124,8 +161,7 @@ export default function NewProjectPage() {
               New project
             </p>
             <p className="text-sm mt-2 text-white">
-              Step 1 of 3
-              <span className="text-[#f9d48f]"> •</span> Grant intake
+              Step 1 of 3<span className="text-[#f9d48f]"> •</span> Grant intake
             </p>
           </div>
         </aside>
@@ -146,6 +182,59 @@ export default function NewProjectPage() {
           <div className="flex justify-center">
             <Card className="w-full max-w-3xl p-8 shadow-xl shadow-black/5 bg-white/70 border border-white/80">
               <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label
+                    htmlFor="grant-name"
+                    className="block text-base font-semibold text-slate-900 mb-2"
+                  >
+                    Grant Name
+                  </label>
+                  <input
+                    id="grant-name"
+                    type="text"
+                    placeholder="Safe Streets and Roads for All"
+                    value={grantName}
+                    onChange={(e) => setGrantName(e.target.value)}
+                    onBlur={() =>
+                      setTouched((prev) => ({ ...prev, grantName: true }))
+                    }
+                    className="block w-full px-4 py-3 text-base border border-slate-200 rounded-lg
+                      focus:ring-2 focus:ring-[#0d2a2b] focus:border-[#0d2a2b]
+                      placeholder-slate-400 text-slate-900 bg-white"
+                  />
+                  {touched.grantName && errors.grantName && (
+                    <p className="text-sm text-[#8b4b1a] font-medium mt-1">
+                      {errors.grantName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="due-date"
+                    className="block text-base font-semibold text-slate-900 mb-2"
+                  >
+                    Due Date
+                  </label>
+                  <input
+                    id="due-date"
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    onBlur={() =>
+                      setTouched((prev) => ({ ...prev, dueDate: true }))
+                    }
+                    className="block w-full px-4 py-3 text-base border border-slate-200 rounded-lg
+                      focus:ring-2 focus:ring-[#0d2a2b] focus:border-[#0d2a2b]
+                      text-slate-900 bg-white"
+                  />
+                  {touched.dueDate && errors.dueDate && (
+                    <p className="text-sm text-[#8b4b1a] font-medium mt-1">
+                      {errors.dueDate}
+                    </p>
+                  )}
+                </div>
+
                 <div>
                   <label
                     htmlFor="file-upload"
@@ -246,7 +335,7 @@ export default function NewProjectPage() {
                       text-white font-semibold text-lg py-3 px-8 rounded-lg
                       transition-colors duration-200 shadow-md hover:shadow-lg"
                   >
-                    Continue
+                    {isSubmitting ? "Uploading..." : "Continue"}
                   </Button>
                 </div>
               </form>

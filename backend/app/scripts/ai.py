@@ -8,11 +8,11 @@ from pydantic import BaseModel, Field
 from typing import List
 import sys
 import os
+from app.database import load_file_metadata
 # Add the parent directory to sys.path for direct execution
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.utils import load_upload_metadata
 from google.genai import types
 import httpx
 
@@ -139,7 +139,7 @@ Here is the question: {question}
         return []
 
 
-def extract_narrative_questions() -> List[str]:
+def extract_narrative_questions(grant_id: str) -> List[str]:
     """
     Extracts narrative questions from the provided text using Gemini API.
     Returns a list of question strings.
@@ -155,8 +155,8 @@ def extract_narrative_questions() -> List[str]:
         questions: List[str] = Field(description="List of narrative questions extracted from the text.")
     
     # Load metadata and find grant document
-    metadata = load_upload_metadata()
-    grant_doc = next((doc for doc in metadata if doc.get("doc_role") == "grant"), None)
+    metadata = load_file_metadata()
+    grant_doc = next((doc for doc in metadata if doc.get("doc_role") == "grant" and doc.get("grant_id") == grant_id), None)
     if not grant_doc:
         raise ValueError("No document with doc_role 'grant' found in metadata.")
     file_name = grant_doc.get("stored_name", "")
@@ -251,7 +251,7 @@ def generate_response(question: str, outline: dict) -> str:
     client = genai.Client()
     
     # Load all uploaded files
-    metadata = load_upload_metadata()
+    metadata = load_file_metadata()
     total_prompt_in = []
     
     for item in metadata:
