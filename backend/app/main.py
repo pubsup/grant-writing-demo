@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.utils import ensure_uploads_dir, UPLOADS_DIR
+import shutil
 from app.routes import api_router
 
 app = FastAPI(
@@ -19,6 +21,21 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix="/api")
+
+PRESERVE_UPLOAD_FILES = [
+    "default-grant-doc.pdf",
+]
+
+@app.on_event("startup")
+async def cleanup_uploads_on_startup() -> None:
+    ensure_uploads_dir()
+    for item in UPLOADS_DIR.iterdir():
+        if item.name in PRESERVE_UPLOAD_FILES:
+            continue
+        if item.is_file() or item.is_symlink():
+            item.unlink(missing_ok=True)
+        elif item.is_dir():
+            shutil.rmtree(item, ignore_errors=True)
 
 @app.get("/")
 async def root():

@@ -52,5 +52,3 @@ dmypy.json
 # Environments
 .env
 .env.local
-
-app/uploads/
