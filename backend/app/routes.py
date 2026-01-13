@@ -281,6 +281,22 @@ async def get_all_grants():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/grants/{grant_id}")
+async def get_grant(grant_id: str):
+    """
+    Retrieve a single grant by ID from the in-memory database.
+    """
+    try:
+        from app.database import grants_database
+        grant = next((item for item in grants_database if item["id"] == grant_id), None)
+        if not grant:
+            raise HTTPException(status_code=404, detail="Grant not found")
+        return {"grant": grant}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/all_files")
 async def get_all_files():
     """

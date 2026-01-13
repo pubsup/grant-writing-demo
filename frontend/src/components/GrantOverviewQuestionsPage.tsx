@@ -91,62 +91,40 @@ export default function GrantOverviewQuestionsPage({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        throw new Error("Using fallback questions"); // Temporary: always use fallback
-        setProcessingStatus("Extracting narrative questions from document...");
-        const extractRes = await fetch(
-          "http://localhost:8000/api/extract_questions",
-          {
-            method: "POST",
-          }
+        setProcessingStatus("Loading grant questions...");
+        const grantRes = await fetch(
+          `http://localhost:8000/api/grants/${grantId}`
         );
-        if (!extractRes.ok) {
-          setQuestions(fallbackQuestions);
-          setCurrentQuestionId(fallbackQuestions[0]?.id ?? "");
-          return;
+        if (!grantRes.ok) {
+          throw new Error("Grant not found");
         }
 
-        const { questions: rawQuestions } = await extractRes.json();
-        const processedQuestions: Question[] = [];
+        const { grant } = await grantRes.json();
+        const rawQuestions = Array.isArray(grant?.questions)
+          ? grant.questions
+          : [];
 
-        for (let i = 0; i < rawQuestions.length; i++) {
-          const qText = rawQuestions[i];
-          setProcessingStatus(
-            `Breaking down question ${i + 1} of ${rawQuestions.length}...`
-          );
-
-          const breakdownRes = await fetch(
-            "http://localhost:8000/api/break_down_question",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ question: qText }),
-            }
-          );
-
-          let subQuestionsList: string[] = [];
-          if (breakdownRes.ok) {
-            const data = await breakdownRes.json();
-            subQuestionsList = data.sub_questions;
-          } else {
-            subQuestionsList = ["Analyze this aspect."];
-          }
-
-          processedQuestions.push({
-            id: `q-${i}`,
-            title: qText,
-            subQuestions: subQuestionsList.map((sq, idx) => ({
-              id: `sq-${i}-${idx}`,
+        const processedQuestions: Question[] = rawQuestions.map(
+          (
+            question: { question: string; sub_questions: string[] },
+            index: number
+          ) => ({
+            id: `q-${index}`,
+            title: question.question,
+            subQuestions: (question.sub_questions ?? []).map((sq, idx) => ({
+              id: `sq-${index}-${idx}`,
               label: sq,
               notes: "",
             })),
             draftAnswerParagraphs: [],
-          });
-        }
+          })
+        );
 
-        setQuestions(processedQuestions);
-        if (processedQuestions.length > 0) {
-          setCurrentQuestionId(processedQuestions[0].id);
-        }
+        const finalQuestions =
+          processedQuestions.length > 0 ? processedQuestions : fallbackQuestions;
+
+        setQuestions(finalQuestions);
+        setCurrentQuestionId(finalQuestions[0]?.id ?? "");
       } catch (error) {
         setQuestions(fallbackQuestions);
         setCurrentQuestionId(fallbackQuestions[0]?.id ?? "");
@@ -156,7 +134,7 @@ export default function GrantOverviewQuestionsPage({
     };
 
     fetchQuestions();
-  }, []);
+  }, [grantId]);
 
   useEffect(() => {
     if (questions.length > 0) {
