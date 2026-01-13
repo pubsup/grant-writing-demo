@@ -121,7 +121,9 @@ export default function GrantOverviewQuestionsPage({
         );
 
         const finalQuestions =
-          processedQuestions.length > 0 ? processedQuestions : fallbackQuestions;
+          processedQuestions.length > 0
+            ? processedQuestions
+            : fallbackQuestions;
 
         setQuestions(finalQuestions);
         setCurrentQuestionId(finalQuestions[0]?.id ?? "");

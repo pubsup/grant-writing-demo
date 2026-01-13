@@ -1,49 +1,34 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-const contextDocuments = [
-  {
-    name: "2024 Housing Needs Assessment",
-    type: "PDF",
-    source: "Research Library",
-    updated: "Aug 12, 2024",
-    status: "Included",
-  },
-  {
-    name: "Capital Improvement Plan",
-    type: "Docx",
-    source: "Planning Dept.",
-    updated: "Jul 28, 2024",
-    status: "Included",
-  },
-  {
-    name: "Community Survey Results",
-    type: "Xlsx",
-    source: "Public Outreach",
-    updated: "Aug 04, 2024",
-    status: "Review",
-  },
-];
+type FileRecord = {
+  id: string;
+  original_name?: string;
+  stored_name?: string;
+  content_type?: string;
+  doc_role?: string;
+  upload_timestamp?: number;
+  grant_id?: string;
+};
 
-const templateLibrary = [
-  {
-    name: "Budget Narrative Template",
-    type: "Docx",
-    owner: "Finance Office",
-  },
-  {
-    name: "Project Timeline Sheet",
-    type: "Xlsx",
-    owner: "Grants Team",
-  },
-  {
-    name: "Letters of Support Bundle",
-    type: "Zip",
-    owner: "Comms",
-  },
-];
+type TemplateDisplay = {
+  id: string;
+  name: string;
+  type: string;
+  owner: string;
+};
+
+type ContextDisplay = {
+  id: string;
+  name: string;
+  type: string;
+  source: string;
+  updated: string;
+  status: string;
+};
 
 type GrantOverviewDocumentsPageProps = {
   grantId: string;
@@ -52,6 +37,145 @@ type GrantOverviewDocumentsPageProps = {
 export default function GrantOverviewDocumentsPage({
   grantId,
 }: GrantOverviewDocumentsPageProps) {
+  const [templateFiles, setTemplateFiles] = useState<TemplateDisplay[]>([]);
+  const [contextFiles, setContextFiles] = useState<ContextDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const formatRole = (role?: string) => {
+    if (!role) return "Document";
+    return role
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const getFileType = (file: FileRecord) => {
+    const name = file.original_name || file.stored_name || "";
+    const ext = name.includes(".") ? name.split(".").pop() : "";
+    if (ext) {
+      return ext.toUpperCase();
+    }
+    const contentType = file.content_type || "";
+    if (contentType.includes("pdf")) return "PDF";
+    if (contentType.includes("word")) return "DOCX";
+    if (contentType.includes("excel")) return "XLSX";
+    if (contentType.includes("csv")) return "CSV";
+    return "FILE";
+  };
+
+  const formatDate = (timestamp?: number) => {
+    if (!timestamp) return "Unknown";
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const fetchFiles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:8000/api/all_files");
+      if (!response.ok) {
+        throw new Error("Failed to load files");
+      }
+      const data = await response.json();
+      const files: FileRecord[] = Array.isArray(data?.files) ? data.files : [];
+
+      const templateDocs = files
+        .filter((file) => file.doc_role === "template")
+        .map((file) => ({
+          id: file.id,
+          name: file.original_name || file.stored_name || "Untitled template",
+          type: getFileType(file),
+          owner: formatRole(file.doc_role),
+        }));
+
+      const contextDocs = files
+        .filter(
+          (file) => file.doc_role !== "template" && file.grant_id === grantId
+        )
+        .map((file) => ({
+          id: file.id,
+          name: file.original_name || file.stored_name || "Untitled document",
+          type: getFileType(file),
+          source: formatRole(file.doc_role),
+          updated: formatDate(file.upload_timestamp),
+          status: "Included",
+        }));
+
+      setTemplateFiles(templateDocs);
+      setContextFiles(contextDocs);
+    } catch (error) {
+      setTemplateFiles([]);
+      setContextFiles([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [grantId]);
+
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
+
+  const contextHeader = useMemo(() => {
+    if (loading) return "Loading files...";
+    if (contextFiles.length === 0) return "No grant files found yet.";
+    return "Toggle which files should be used for extraction, summaries, and drafted answers.";
+  }, [contextFiles.length, loading]);
+
+  const handleFileSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] ?? null;
+    setPendingFile(selectedFile);
+    setUploadError(null);
+  };
+
+  const handleUpload = async () => {
+    if (!pendingFile) {
+      setUploadError("Select a file before uploading.");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", pendingFile);
+      formData.append("file_role", "context");
+      formData.append("grant_id", grantId);
+
+      const response = await fetch("http://localhost:8000/api/upload_file", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      document.getElementById("title-input")?.setAttribute("value", "");
+
+      setPendingFile(null);
+      setTitle("");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      await fetchFiles();
+    } catch (error) {
+      setUploadError(
+        error instanceof Error ? error.message : "Failed to upload file."
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-slate-900">
       <div className="flex min-h-screen">
@@ -128,9 +252,9 @@ export default function GrantOverviewDocumentsPage({
                 grant.
               </p>
               <div className="mt-6 space-y-3">
-                {templateLibrary.map((template) => (
+                {templateFiles.map((template) => (
                   <div
-                    key={template.name}
+                    key={template.id}
                     className="flex items-center justify-between rounded-xl outline outline-1 outline-slate-200/60 border border-white/70 bg-white/80 px-4 py-3"
                   >
                     <div>
@@ -149,6 +273,11 @@ export default function GrantOverviewDocumentsPage({
                     </Button>
                   </div>
                 ))}
+                {!loading && templateFiles.length === 0 && (
+                  <p className="text-sm text-slate-500">
+                    No templates available yet.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -162,28 +291,49 @@ export default function GrantOverviewDocumentsPage({
               </p>
               <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-white/60 px-4 py-6 text-left">
                 <p className="text-sm text-slate-600">
-                  Add a title and short description before uploading.
+                  Add a title before uploading.
                 </p>
                 <div className="mt-4 flex flex-col gap-3">
                   <input
                     className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
                     placeholder="Title"
+                    id="title-input"
                     type="text"
-                  />
-                  <input
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
-                    placeholder="Short description"
-                    type="text"
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
                   />
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <Button
+                      className="bg-[#0d2a2b] text-white hover:bg-[#133d3f]"
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Choose file
+                    </Button>
+                    <Button
                       className="bg-[#f29f5c] text-[#0d2a2b] hover:bg-[#f6b57f] font-semibold"
                       type="button"
+                      onClick={handleUpload}
+                      disabled={isUploading || !pendingFile}
                     >
-                      Upload context
+                      {isUploading ? "Uploading..." : "Upload context"}
                     </Button>
                   </div>
+                  {pendingFile && (
+                    <p className="text-xs text-slate-500">
+                      Selected: {pendingFile.name}
+                    </p>
+                  )}
+                  {uploadError && (
+                    <p className="text-sm text-[#8b4b1a]">{uploadError}</p>
+                  )}
                 </div>
+                <input
+                  ref={fileInputRef}
+                  className="sr-only"
+                  type="file"
+                  onChange={handleFileSelection}
+                />
                 <p className="text-xs text-slate-500 mt-3">
                   Accepted formats: PDF, DOCX, XLSX, CSV.
                 </p>
@@ -195,14 +345,11 @@ export default function GrantOverviewDocumentsPage({
             <h3 className="text-lg font-semibold text-slate-900">
               Grant context documents
             </h3>
-            <p className="text-sm text-slate-600 mt-2">
-              Toggle which files should be used for extraction, summaries, and
-              drafted answers.
-            </p>
+            <p className="text-sm text-slate-600 mt-2">{contextHeader}</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {contextDocuments.map((doc) => (
+              {contextFiles.map((doc) => (
                 <div
-                  key={doc.name}
+                  key={doc.id}
                   className="rounded-2xl border border-white/70 outline outline-1 outline-slate-200/60 bg-white/80 p-4 hover:bg-white/90 transition"
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -231,6 +378,12 @@ export default function GrantOverviewDocumentsPage({
                   </div>
                 </div>
               ))}
+              {!loading && contextFiles.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-6 text-sm text-slate-500">
+                  Upload or link files to this grant to populate the context
+                  library.
+                </div>
+              )}
             </div>
           </section>
         </main>

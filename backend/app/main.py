@@ -24,6 +24,7 @@ app.include_router(api_router, prefix="/api")
 
 PRESERVE_UPLOAD_FILES = [
     "default-grant-doc.pdf",
+    "budget_template.pdf",
 ]
 
 @app.on_event("startup")

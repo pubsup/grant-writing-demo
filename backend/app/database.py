@@ -9,7 +9,16 @@ files_database = [
         "content_type": "application/pdf",
         "doc_role": "grant",
         "upload_timestamp": time.time(),
-        "grant_id": "default-grant-id",
+        "grant_id": "1",
+    },
+    {
+        "id": "budget-template",
+        "original_name": "budget_template.pdf",
+        "stored_name": "budget-template.pdf",
+        "content_type": "application/pdf",
+        "doc_role": "template",
+        "upload_timestamp": time.time(),
+        "grant_id": "0",
     }
 ]
 
