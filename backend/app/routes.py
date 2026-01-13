@@ -61,8 +61,11 @@ import time
 
 
 @api_router.post("/upload_file")
-async def upload_file(file: UploadFile = File(...),
-    file_role: str = Form(...)):
+async def upload_file(
+    file: UploadFile = File(...),
+    file_role: str = Form(...),
+    grant_id: str = Form(...),
+    ):
     """
     Upload a file, save it to disk, and record metadata in index.json
     """
@@ -86,6 +89,7 @@ async def upload_file(file: UploadFile = File(...),
             "stored_name": stored_filename,
             "content_type": file.content_type,
             "doc_role": file_role,
+            "grant_id": grant_id,
             "upload_timestamp": time.time()
         }
         

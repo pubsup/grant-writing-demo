@@ -79,6 +79,7 @@ export default function GrantDocumentsPage() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("file_role", "template");
+        formData.append("grant_id", "0");
 
         const response = await fetch("http://localhost:8000/api/upload_file", {
           method: "POST",
