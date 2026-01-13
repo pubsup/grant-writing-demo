@@ -10,14 +10,6 @@ class HealthResponse(BaseModel):
     status: str
     message: str
 
-class Item(BaseModel):
-    id: Optional[int] = None
-    name: str
-    description: Optional[str] = None
-
-# In-memory storage for demo purposes
-items_db: List[Item] = []
-
 @api_router.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint"""
@@ -25,33 +17,6 @@ async def health_check():
         status="healthy",
         message="Backend is running successfully!"
     )
-
-@api_router.get("/items", response_model=List[Item])
-async def get_items():
-    """Get all items"""
-    return items_db
-
-@api_router.post("/items", response_model=Item)
-async def create_item(item: Item):
-    """Create a new item"""
-    item.id = len(items_db) + 1
-    items_db.append(item)
-    return item
-
-@api_router.get("/items/{item_id}", response_model=Item)
-async def get_item(item_id: int):
-    """Get a specific item by ID"""
-    for item in items_db:
-        if item.id == item_id:
-            return item
-    raise HTTPException(status_code=404, detail="Item not found")
-
-@api_router.delete("/items/{item_id}")
-async def delete_item(item_id: int):
-    """Delete an item"""
-    global items_db
-    items_db = [item for item in items_db if item.id != item_id]
-    return {"message": "Item deleted successfully"}
 
 # Gemini API Integration
 import os
@@ -94,8 +59,10 @@ import shutil
 import uuid
 import time
 
+
 @api_router.post("/upload_file")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...),
+    file_role: str = Form(...)):
     """
     Upload a file, save it to disk, and record metadata in index.json
     """
@@ -118,7 +85,7 @@ async def upload_file(file: UploadFile = File(...)):
             "original_name": original_filename,
             "stored_name": stored_filename,
             "content_type": file.content_type,
-            "doc_role": "context",
+            "doc_role": file_role,
             "upload_timestamp": time.time()
         }
         
@@ -323,5 +290,16 @@ async def get_all_grants():
     try:
         from app.database import grants_database
         return {"grants": grants_database}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/all_files")
+async def get_all_files():
+    """
+    Retrieve all uploaded files' metadata from the in-memory database.
+    """
+    try:
+        from app.database import files_database
+        return {"files": files_database}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
