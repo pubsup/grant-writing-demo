@@ -239,12 +239,12 @@ export default function GrantOverviewTeamPage({
             </p>
           </div>
           <nav className="space-y-2 text-sm">
-            <Link
+            {/* <Link
               className="block w-full text-left rounded-xl px-4 py-3 text-slate-300 hover:bg-white/5 hover:text-white transition"
               href={`/overview/${grantId}`}
             >
               Overview
-            </Link>
+            </Link> */}
             <Link
               className="block w-full text-left rounded-xl px-4 py-3 text-slate-300 hover:bg-white/5 hover:text-white transition"
               href={`/overview/${grantId}/questions`}

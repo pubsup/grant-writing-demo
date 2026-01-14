@@ -1,32 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
-const stats = [
-  {
-    label: "Active Grants",
-    value: "12",
-    change: "+3 this month",
-  },
-  {
-    label: "In Review",
-    value: "5",
-    change: "2 waiting on docs",
-  },
-  {
-    label: "Funding Target",
-    value: "$4.2M",
-    change: "62% projected",
-  },
-  {
-    label: "Upcoming Deadlines",
-    value: "7",
-    change: "Next: Sep 12",
-  },
-];
 
 type Grant = {
   id?: string;
@@ -76,6 +53,69 @@ export default function GrantDashboardPage() {
       isMounted = false;
     };
   }, []);
+
+  const stats = useMemo(() => {
+    const total = grants.length;
+    const inReview = grants.filter((grant) =>
+      (grant.status || "").toLowerCase().includes("review")
+    ).length;
+    const researching = grants.filter(
+      (grant) => (grant.status || "").toLowerCase() === "researching"
+    ).length;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const upcomingWindow = new Date(today);
+    upcomingWindow.setDate(upcomingWindow.getDate() + 30);
+
+    const deadlines = grants
+      .map((grant) => {
+        if (!grant.due_date) return null;
+        const parsed = new Date(grant.due_date);
+        if (Number.isNaN(parsed.getTime())) return null;
+        return parsed;
+      })
+      .filter((date): date is Date => date !== null);
+
+    const upcomingDeadlines = deadlines.filter(
+      (date) => date >= today && date <= upcomingWindow
+    );
+
+    const nextDeadline = deadlines.sort((a, b) => a.getTime() - b.getTime())[0];
+    const nextDeadlineLabel = nextDeadline
+      ? nextDeadline.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+        })
+      : "None scheduled";
+
+    return [
+      {
+        label: "Active Grants",
+        value: total.toString(),
+        change: total === 1 ? "1 grant in flight" : `${total} grants in flight`,
+      },
+      {
+        label: "Researching",
+        value: researching.toString(),
+        change:
+          researching === 0
+            ? "No grants in research"
+            : `${researching} in research`,
+      },
+      {
+        label: "In Review",
+        value: inReview.toString(),
+        change:
+          inReview === 0 ? "No reviews pending" : `${inReview} under review`,
+      },
+      {
+        label: "Upcoming Deadlines",
+        value: upcomingDeadlines.length.toString(),
+        change: `Next: ${nextDeadlineLabel}`,
+      },
+    ];
+  }, [grants]);
 
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-slate-900">
@@ -235,7 +275,7 @@ export default function GrantDashboardPage() {
                         tabIndex={0}
                         onClick={() => {
                           if (grant.id) {
-                            router.push(`/overview/${grant.id}`);
+                            router.push(`/overview/${grant.id}/questions`);
                           }
                         }}
                         onKeyDown={(event) => {
@@ -244,7 +284,7 @@ export default function GrantDashboardPage() {
                           }
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
-                            router.push(`/overview/${grant.id}`);
+                            router.push(`/overview/${grant.id}/questions`);
                           }
                         }}
                       >
